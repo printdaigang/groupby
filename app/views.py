@@ -3,7 +3,7 @@ from flask import render_template, redirect, request, url_for, flash, g, abort
 from app import app, lm, db
 from models import User, Book, Log
 from flask.ext.login import current_user, login_required, login_user, logout_user
-from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBook
+from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm
 from functools import wraps
 
 
@@ -54,7 +54,7 @@ def book_detail(bid):
 @admin_required
 def book_edit(bid):
     book = Book.query.get_or_404(bid)
-    form = EditBook()
+    form = EditBookForm()
     if form.validate_on_submit():
         book.title = form.title.data
         book.subtitle = form.subtitle.data
@@ -80,7 +80,7 @@ def book_edit(bid):
 @app.route('/book/add/', methods=['GET', 'POST'])
 @admin_required
 def book_add():
-    form = EditBook()
+    form = EditBookForm()
     if form.validate_on_submit():
         new_book = Book(
             title=form.title.data,
@@ -170,6 +170,7 @@ def login():
 
 
 @app.route('/logout/')
+@login_required
 def logout():
     logout_user()
     flash(u"您已经成功登出!", 'info')
@@ -192,6 +193,7 @@ def register():
 
 
 @app.route('/user/<int:uid>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_profile(uid):
     if current_user.id == uid or current_user.admin:
         the_user = User.query.get_or_404(uid)
@@ -207,6 +209,19 @@ def edit_profile(uid):
         form.name.data = the_user.name
         form.major.data = the_user.major
         form.about_me.data = the_user.about_me
-        return render_template('user_detail_edit.html', form=form, user=the_user, title=u"编辑资料")
+        return render_template('user_edit.html', form=form, user=the_user, title=u"编辑资料")
     else:
         abort(403)
+
+
+@app.route('/change_password/', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        current_user.password = form.new_password.data
+        db.session.add(current_user)
+        db.session.commit()
+        flash(u"密码更新成功!",'success')
+        return redirect(url_for('user_detail', uid=current_user.id))
+    return render_template('user_edit.html', form=form, user=current_user, title=u"修改密码")
