@@ -2,13 +2,11 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% block mycontent %}
     <div class="jumbotron">
-        <h1 class="page-header">{{ user.name }}
-            <br>
-            <small>{{ user.email }}</small>
+        <h1 class="page-header">{{ book.title }}
         </h1>
     </div>
     <div class="container well well-lg">
-        <h3>编辑你的资料</h3>
+        <h3>编辑书籍</h3>
         {{ wtf.quick_form(form,button_map={'submit':'success'}) }}
     </div>
 {% endblock %}

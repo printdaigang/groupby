@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField
 from wtforms import ValidationError
 from wtforms.validators import Email, Length, DataRequired, EqualTo
 from .models import User
@@ -27,7 +27,17 @@ class RegistrationForm(Form):
 
 class EditProfileForm(Form):
     name = StringField(u'用户名', validators=[DataRequired(), Length(1, 64)])
-    major = StringField(u'主修专业')
+    major = StringField(u'主修专业', validators=[Length(0, 128)])
     about_me = TextAreaField(u"用户自我简介")
     submit = SubmitField(u"保存更改")
 
+
+class EditBook(Form):
+    title = StringField(u"书名", validators=[DataRequired(), Length(1, 128)])
+    subtitle = StringField(u"副标题", validators=[Length(0, 256)])
+    author = StringField(u"作者", validators=[DataRequired(), Length(0, 64)])
+    isbn = StringField(u"ISBN", validators=[DataRequired(), Length(0, 32)])
+    category = StringField(u"分类", validators=[DataRequired(), Length(0, 64)])
+    numbers = IntegerField(u"馆藏", validators=[DataRequired()])
+    description = TextAreaField(u"内容简介")
+    submit = SubmitField(u"保存更改")

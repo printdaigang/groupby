@@ -3,7 +3,7 @@ from flask import render_template, redirect, request, url_for, flash, g, abort
 from app import app, lm, db
 from models import User, Book, Log
 from flask.ext.login import current_user, login_required, login_user, logout_user
-from .forms import LoginForm, RegistrationForm, EditProfileForm
+from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBook
 from functools import wraps
 
 
@@ -43,30 +43,44 @@ def book():
 
 @app.route('/book/<int:bid>/')
 def book_detail(bid):
-    the_book = Book.query.get(bid)
-    if the_book is None:
-        abort(404)
-
+    the_book = Book.query.get_or_404(bid)
     borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=0).all())
     borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=1).all())
     return render_template("book_detail.html", book=the_book, borrowing_data=borrowing_data,
                            borrowed_data=borrowed_data, title=the_book.title)
 
 
-@app.route('/book/<int:bid>/edit')
+@app.route('/book/<int:bid>/edit', methods=['GET', 'POST'])
 @admin_required
 def book_edit(bid):
-    return render_template("book_detail.html")
+    book = Book.query.get_or_404(bid)
+    form = EditBook()
+    if form.validate_on_submit():
+        book.title = form.title.data
+        book.subtitle = form.subtitle.data
+        book.author = form.author.data
+        book.isbn = form.isbn.data
+        book.category = form.category.data
+        book.numbers = form.numbers.data
+        book.description = form.description.data
+        db.session.add(book)
+        db.session.commit()
+        flash(u"书籍资料已保存!", 'success')
+        return redirect(url_for('book_detail', bid=bid))
+    form.title.data = book.title
+    form.subtitle.data = book.subtitle
+    form.author.data = book.author
+    form.isbn.data = book.isbn
+    form.category.data = book.category
+    form.numbers.data = book.numbers
+    form.description.data = book.description
+    return render_template("book_edit.html", form=form, book=book)
 
 
 @app.route('/book/<int:bid>/borrow/')
 @login_required
 def book_borrow(bid):
-    the_book = Book.query.get(bid)
-
-    if the_book is None:
-        flash(u"奇怪,我们没有这本书!", 'danger')
-        return redirect(request.args.get('next') or url_for('index'))
+    the_book = Book.query.get_or_404(bid)
 
     if current_user.borrowing(the_book):
         flash(u"貌似你已经借阅了这本书!", 'danger')
@@ -87,11 +101,7 @@ def book_borrow(bid):
 @app.route('/book/<int:bid>/return/')
 @login_required
 def giveback(bid):
-    the_book = Book.query.get(bid)
-
-    if the_book is None:
-        flash(u"奇怪,我们没有这本书!", 'danger')
-        return redirect(request.args.get('next') or url_for('index'))
+    the_book = Book.query.get_or_404(bid)
 
     if not current_user.borrowing(the_book):
         flash(u"你还没借这本书!", 'danger')
@@ -112,7 +122,7 @@ def user():
 
 @app.route('/user/<int:uid>/')
 def user_detail(uid):
-    the_user = User.query.get(uid)
+    the_user = User.query.get_or_404(uid)
     borrowing_data = map(lambda l: (l.book, l.timestamp), Log.query.filter_by(user_id=uid, returned=0).all())
     borrowed_data = map(lambda l: (l.book, l.timestamp), Log.query.filter_by(user_id=uid, returned=1).all())
     return render_template("user_detail.html", user=the_user, borrowing_data=borrowing_data,
