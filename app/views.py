@@ -140,7 +140,7 @@ def card():
 def login():
     login_form = LoginForm()
     if login_form.validate_on_submit():
-        the_user = User.query.filter_by(email=login_form.email.data).first()
+        the_user = User.query.filter(db.func.lower(User.email) == db.func.lower(login_form.email.data)).first()
         if the_user is not None and the_user.password == login_form.password.data:
             login_user(the_user, login_form.remember_me.data)
             flash(u"登录成功!  欢迎您 %s" % the_user.name, 'success')
