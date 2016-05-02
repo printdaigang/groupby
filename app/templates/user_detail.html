@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block mycontent %}
+    <div class="jumbotron">
+        <h1 class="page-header">{{ user.name }}
+            <br>
+            <small>{{ user.email }}</small>
+        </h1>
+        {% if user.major %}
+            <h4>{{ user.major }}</h4>
+        {% endif %}
+    </div>
+    {% if borrowing_data %}
+        <table class="table table-striped table-hover">
+            <caption>当前借阅</caption>
+            <thead>
+            <tr>
+                <th>书名</th>
+                <th>作者</th>
+                <th class="hidden-xs">ISBN</th>
+                <th class="hidden-xs">分类</th>
+                <th>借阅时间</th>
+                {% if g.user.is_authenticated and g.user==user %}
+                    <th>操作</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for data in borrowing_data %}
+                <tr>
+                    <td><a href="{{ url_for('book_detail',bid=data[0].id) }}">{{ data[0].title }}</a></td>
+                    <td>{{ data[0].author }}</td>
+                    <td class="hidden-xs">{{ data[0].isbn }}</td>
+                    <td class="hidden-xs">{{ data[0].category }}</td>
+                    <td>{{ data[1] }}</td>
+                    {% if g.user.is_authenticated and g.user==user %}
+                        <td><a class="btn btn-primary" href="{{ url_for('giveback',bid=data[0].id) }}">归还</a></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if borrowed_data %}
+        <table class="table table-striped table-hover">
+            <caption>历史借阅</caption>
+            <thead>
+            <tr>
+                <th>书名</th>
+                <th>作者</th>
+                <th class="hidden-xs">ISBN</th>
+                <th class="hidden-xs">分类</th>
+                <th>借阅时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for data in borrowed_data %}
+                <tr>
+                    <td><a href="{{ url_for('book_detail',bid=data[0].id) }}">{{ data[0].title }}</a></td>
+                    <td>{{ data[0].author }}</td>
+                    <td class="hidden-xs">{{ data[0].isbn }}</td>
+                    <td class="hidden-xs">{{ data[0].category }}</td>
+                    <td>{{ data[1] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

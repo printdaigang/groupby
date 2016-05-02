@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block mycontent %}
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#current" aria-controls="current" role="tab"
+                                                  data-toggle="tab">当前借阅记录</a></li>
+        <li role="presentation"><a href="#history" aria-controls="history" role="tab" data-toggle="tab">历史借阅记录</a>
+        </li>
+    </ul>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="current">
+            {% if borrowing_logs %}
+                <table class="table table-striped table-hover">
+                    <caption>当前借阅记录</caption>
+                    <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>用户邮箱</th>
+                        <th>借阅书籍</th>
+                        <th>借阅日期</th>
+                        <th>是否归还</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for log in borrowing_logs %}
+                        <tr>
+                            <td>{{ log.user.name }}</td>
+                            <td>{{ log.user.email }}</td>
+                            <td>{{ log.book.title }}</td>
+                            <td>{{ log.timestamp }}</td>
+                            <td>{% if log.user.id == g.user.id %}
+                                <a class="btn btn-primary" href="{{ url_for('giveback',bid=log.book.id) }}">
+                                    归还
+                                </a>{% else %}未归还{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="history">
+            {% if borrowed_logs %}
+                <table class="table table-striped table-hover">
+                    <caption>历史借阅记录</caption>
+                    <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>用户邮箱</th>
+                        <th>借阅书籍</th>
+                        <th>借阅日期</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for log in borrowed_logs %}
+                        <tr>
+                            <td>{{ log.user.name }}</td>
+                            <td>{{ log.user.email }}</td>
+                            <td>{{ log.book.title }}</td>
+                            <td>{{ log.timestamp }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

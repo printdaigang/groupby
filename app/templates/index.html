@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block mycontent %}
+    <table class="table table-striped table-hover">
+        <caption>热门图书 Top 5</caption>
+        <thead>
+        <tr>
+            <th>书名</th>
+            <th>作者</th>
+            <th class="hidden-xs">ISBN</th>
+            <th class="hidden-xs">分类</th>
+            <th>馆藏 / 可借</th>
+            <th>借阅册数</th>
+            {% if g.user.is_authenticated %}
+                <th>操作</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for book in books %}
+            <tr>
+                <td><a href="{{ url_for('book_detail',bid=book.id) }}">{{ book.title }}</a></td>
+                <td>{{ book.author }}</td>
+                <td class="hidden-xs">{{ book.isbn }}</td>
+                <td class="hidden-xs">{{ book.category }}</td>
+                <td>{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
+                <td>{{ book.logs.count() }}</td>
+                {% if g.user.is_authenticated %}
+                    {% if g.user.borrowing(book) %}
+                        <td><a class="btn btn-primary" href="{{ url_for('giveback',bid=book.id) }}">
+                            归还
+                        </a></td>
+                    {% else %}
+                        <td><a class="btn btn-success" href="{{ url_for('book_borrow',bid=book.id) }}"
+                               {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
+                            借阅
+                        </a></td>
+                    {% endif %}
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+        <table class="table table-striped table-hover">
+        <caption>风云读者 Top 5</caption>
+        <thead>
+        <tr>
+            <th>借阅者姓名</th>
+            <th>借阅次数</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td><a href="{{ url_for('user_detail',uid=user.id) }}">{{ user.name }}</a></td>
+               <td>{{ user.logs.count() }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
