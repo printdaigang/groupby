@@ -30,7 +30,7 @@
                             <td>{{ log.book.title }}</td>
                             <td>{{ log.timestamp }}</td>
                             <td>{% if log.user.id == g.user.id %}
-                                <a class="btn btn-primary" href="{{ url_for('giveback',bid=log.book.id) }}">
+                                <a class="btn btn-primary" href="{{ url_for('giveback',bid=log.book.id,next=request.path) }}">
                                     归还
                                 </a>{% else %}未归还{% endif %}</td>
                         </tr>

@@ -33,7 +33,7 @@
                     <td class="hidden-xs">{{ data[0].category }}</td>
                     <td>{{ data[1] }}</td>
                     {% if g.user.is_authenticated and g.user==user %}
-                        <td><a class="btn btn-primary" href="{{ url_for('giveback',bid=data[0].id) }}">归还</a></td>
+                        <td><a class="btn btn-primary" href="{{ url_for('giveback',bid=data[0].id,next=request.path) }}">归还</a></td>
                     {% endif %}
                 </tr>
             {% endfor %}

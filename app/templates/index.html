@@ -26,11 +26,11 @@
                 <td>{{ book.logs.count() }}</td>
                 {% if g.user.is_authenticated %}
                     {% if g.user.borrowing(book) %}
-                        <td><a class="btn btn-primary" href="{{ url_for('giveback',bid=book.id) }}">
+                        <td><a class="btn btn-primary" href="{{ url_for('giveback',bid=book.id,next=request.path) }}">
                             归还
                         </a></td>
                     {% else %}
-                        <td><a class="btn btn-success" href="{{ url_for('book_borrow',bid=book.id) }}"
+                        <td><a class="btn btn-success" href="{{ url_for('book_borrow',bid=book.id,next=request.path) }}"
                                {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
                             借阅
                         </a></td>
