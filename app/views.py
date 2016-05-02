@@ -27,7 +27,7 @@ def index():
 @app.route('/book/')
 def book():
     books = Book.query.all()
-    return render_template("book.html", books=books)
+    return render_template("book.html", books=books, title=u"书籍清单")
 
 
 @app.route('/book/<int:bid>/')
@@ -39,7 +39,7 @@ def book_detail(bid):
     borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=0).all())
     borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=1).all())
     return render_template("book_detail.html", book=the_book, borrowing_data=borrowing_data,
-                           borrowed_data=borrowed_data)
+                           borrowed_data=borrowed_data, title=the_book.title)
 
 
 @app.route('/book/<int:bid>/edit')
@@ -95,7 +95,7 @@ def giveback(bid):
 @app.route('/user/')
 def user():
     users = User.query.all()
-    return render_template("user.html", users=users)
+    return render_template("user.html", users=users, title=u"已注册用户")
 
 
 @app.route('/user/<int:uid>/')
@@ -104,14 +104,14 @@ def user_detail(uid):
     borrowing_data = map(lambda l: (l.book, l.timestamp), Log.query.filter_by(user_id=uid, returned=0).all())
     borrowed_data = map(lambda l: (l.book, l.timestamp), Log.query.filter_by(user_id=uid, returned=1).all())
     return render_template("user_detail.html", user=the_user, borrowing_data=borrowing_data,
-                           borrowed_data=borrowed_data)
+                           borrowed_data=borrowed_data, title=u"用户: " + the_user.name)
 
 
 @app.route('/card/')
 def card():
     borrowing_logs = Log.query.filter_by(returned=0).order_by(Log.timestamp.desc()).all()
     borrowed_logs = Log.query.filter_by(returned=1).order_by(Log.timestamp.desc()).all()
-    return render_template("card.html", borrowing_logs=borrowing_logs, borrowed_logs=borrowed_logs)
+    return render_template("card.html", borrowing_logs=borrowing_logs, borrowed_logs=borrowed_logs, title=u"借阅信息")
 
 
 @app.route('/login/', methods=['GET', 'POST'])

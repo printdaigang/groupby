@@ -1,4 +1,11 @@
 {% extends "bootstrap/base.html" %}
+{% block title %}
+    {% if title %}
+        {{ title }} - Book Library
+    {% else %}
+        Book Library
+    {% endif %}
+{% endblock %}
 {% block styles %}
     {#    {{ super() }}#}
     <link href="{{ url_for('static',filename='css/main.css') }}" rel="stylesheet">
