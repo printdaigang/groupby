@@ -3,12 +3,23 @@ from flask import render_template, redirect, request, url_for, flash, g, abort
 from app import app, lm, db
 from models import User, Book, Log
 from flask.ext.login import current_user, login_required, login_user, logout_user
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm, EditProfileForm
+from functools import wraps
 
 
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
+
+def admin_required(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if not current_user.admin:
+            abort(403)
+        return func(*args, **kwargs)
+
+    return decorated_function
 
 
 @app.before_request
@@ -43,6 +54,7 @@ def book_detail(bid):
 
 
 @app.route('/book/<int:bid>/edit')
+@admin_required
 def book_edit(bid):
     return render_template("book_detail.html")
 
@@ -124,7 +136,7 @@ def login():
             flash(u"登录成功!  欢迎您 %s" % the_user.name, 'success')
             return redirect(request.args.get('next') or url_for('index'))
         flash(u'用户名无效或密码错误', 'danger')
-    return render_template("login.html", form=login_form)
+    return render_template("login.html", form=login_form, title=u"登入")
 
 
 @app.route('/logout/')
@@ -146,4 +158,25 @@ def register():
         flash(u'注册成功! 欢迎您 %s' % form.name.data, 'success')
         login_user(the_user)
         return redirect(request.args.get('next') or url_for('index'))
-    return render_template('register.html', form=form)
+    return render_template('register.html', form=form, title=u"新用户注册")
+
+
+@app.route('/user/<int:uid>/edit', methods=['GET', 'POST'])
+def edit_profile(uid):
+    if current_user.id == uid or current_user.admin:
+        the_user = User.query.get_or_404(uid)
+        form = EditProfileForm()
+        if form.validate_on_submit():
+            the_user.name = form.name.data
+            the_user.major = form.major.data
+            the_user.about_me = form.about_me.data
+            db.session.add(the_user)
+            db.session.commit()
+            flash(u"资料更新成功!", "info")
+            return redirect(url_for('user_detail', uid=uid))
+        form.name.data = the_user.name
+        form.major.data = the_user.major
+        form.about_me.data = the_user.about_me
+        return render_template('user_detail_edit.html', form=form, user=the_user, title=u"编辑资料")
+    else:
+        abort(403)

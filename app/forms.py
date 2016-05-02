@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,TextAreaField
 from wtforms import ValidationError
 from wtforms.validators import Email, Length, DataRequired, EqualTo
 from .models import User
@@ -23,3 +23,11 @@ class RegistrationForm(Form):
     def validate_email(self, filed):
         if User.query.filter_by(email=filed.data).first():
             raise ValidationError(u'邮箱已注册')
+
+
+class EditProfileForm(Form):
+    name = StringField(u'用户名', validators=[DataRequired(), Length(1, 64)])
+    major = StringField(u'主修专业')
+    about_me = TextAreaField(u"用户自我简介")
+    submit = SubmitField(u"保存更改")
+

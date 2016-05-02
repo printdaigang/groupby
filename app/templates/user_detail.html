@@ -8,6 +8,14 @@
         {% if user.major %}
             <h4>{{ user.major }}</h4>
         {% endif %}
+
+        {% if user.about_me %}
+            <p>{{ user.about_me }}</p>
+        {% endif %}
+
+        {% if g.user.id==user.id or g.user.admin %}
+            <a class="btn btn-default" href="{{ url_for('edit_profile',uid=user.id) }}">编辑资料</a>
+        {% endif %}
     </div>
 
     <div class="well well-lg">

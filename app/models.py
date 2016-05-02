@@ -30,18 +30,21 @@ class User(UserMixin, db.Model):
     major = db.Column(db.String(128))
     admin = db.Column(db.Boolean, default=0)
 
+    about_me = db.deferred(db.Column(db.Text, nullable=True))
+
     logs = db.relationship('Log',
                            foreign_keys=[Log.user_id],
                            backref=db.backref('user', lazy='joined'),
                            lazy='dynamic',
                            cascade='all, delete-orphan')
 
-    def __init__(self, email, name, password, major=None, admin=False):
+    def __init__(self, email, name, password, major=None, admin=False, description=None):
         self.email = email
         self.name = name
         self.password = password
         self.major = major
         self.admin = admin
+        self.description = description
 
     def __repr__(self):
         return u'<User name=%r email=%r>' % (self.name, self.email)
