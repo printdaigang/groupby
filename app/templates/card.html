@@ -16,7 +16,7 @@
                     <thead>
                     <tr>
                         <th>用户名</th>
-                        <th>用户邮箱</th>
+                        <th class="hidden-xs">用户邮箱</th>
                         <th>借阅书籍</th>
                         <th>借阅日期</th>
                         <th>是否归还</th>
@@ -25,12 +25,13 @@
                     <tbody>
                     {% for log in borrowing_logs %}
                         <tr>
-                            <td>{{ log.user.name }}</td>
-                            <td>{{ log.user.email }}</td>
-                            <td>{{ log.book.title }}</td>
+                            <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a></td>
+                            <td class="hidden-xs">{{ log.user.email }}</td>
+                            <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
                             <td>{{ log.timestamp }}</td>
                             <td>{% if log.user.id == g.user.id %}
-                                <a class="btn btn-primary" href="{{ url_for('giveback',bid=log.book.id,next=request.path) }}">
+                                <a class="btn btn-primary"
+                                   href="{{ url_for('giveback',bid=log.book.id,next=request.path) }}">
                                     归还
                                 </a>{% else %}未归还{% endif %}</td>
                         </tr>
@@ -46,7 +47,7 @@
                     <thead>
                     <tr>
                         <th>用户名</th>
-                        <th>用户邮箱</th>
+                        <th class="hhidden-xs">用户邮箱</th>
                         <th>借阅书籍</th>
                         <th>借阅日期</th>
                     </tr>
@@ -54,9 +55,9 @@
                     <tbody>
                     {% for log in borrowed_logs %}
                         <tr>
-                            <td>{{ log.user.name }}</td>
-                            <td>{{ log.user.email }}</td>
-                            <td>{{ log.book.title }}</td>
+                            <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a></td>
+                            <td class="hidden-xs">{{ log.user.email }}</td>
+                            <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
                             <td>{{ log.timestamp }}</td>
                         </tr>
                     {% endfor %}
