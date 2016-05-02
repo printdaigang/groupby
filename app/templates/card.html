@@ -10,7 +10,7 @@
     <!-- Tab panes -->
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="current">
-            {% if borrowing_logs %}
+            {%- if borrowing_logs -%}
                 <table class="table table-striped table-hover">
                     <caption>当前借阅记录</caption>
                     <thead>
@@ -19,21 +19,26 @@
                         <th class="hidden-xs">用户邮箱</th>
                         <th>借阅书籍</th>
                         <th>借阅日期</th>
-                        <th>是否归还</th>
+                        {%- if g.user.is_authenticated -%}
+                            <th>操作</th>
+                        {%- endif -%}
                     </tr>
                     </thead>
                     <tbody>
-                    {% for log in borrowing_logs %}
+                    {%- for log in borrowing_logs -%}
                         <tr>
                             <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a></td>
                             <td class="hidden-xs">{{ log.user.email }}</td>
                             <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
                             <td>{{ log.timestamp }}</td>
-                            <td>{% if log.user.id == g.user.id %}
-                                <a class="btn btn-primary"
-                                   href="{{ url_for('giveback',bid=log.book.id,next=request.path) }}">
-                                    归还
-                                </a>{% else %}未归还{% endif %}</td>
+                            {%- if g.user.is_authenticated -%}
+                                <td>{% if log.user.id == g.user.id %}
+                                    <a class="btn btn-primary"
+                                       href="{{ url_for('giveback',bid=log.book.id,next=request.path) }}">
+                                        归还
+                                    </a>{% else %}
+                                    <button class="btn btn-warning" disabled>待归还</button>{% endif %}</td>
+                            {%- endif -%}
                         </tr>
                     {% endfor %}
                     </tbody>

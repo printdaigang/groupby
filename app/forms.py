@@ -24,7 +24,7 @@ class RegistrationForm(Form):
     def validate_email(self, filed):
         from app import db
         if User.query.filter(db.func.lower(User.email) == db.func.lower(filed.data)).first():
-            raise ValidationError(u'邮箱已注册')
+            raise ValidationError(u'该 Email 已经被注册了')
 
 
 class EditProfileForm(Form):
