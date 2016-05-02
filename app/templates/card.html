@@ -9,10 +9,13 @@
     </ul>
     <!-- Tab panes -->
     <div class="tab-content">
+
+        {% set groups = logs|groupby('returned') %}
+        {% set group0 , group1 = groups[0],groups[1] %}
         <div role="tabpanel" class="tab-pane active" id="current">
-            {%- if borrowing_logs -%}
-                <table class="table table-striped table-hover">
-                    <caption>当前借阅记录</caption>
+            <table class="table table-striped table-hover">
+                <caption>当前借阅记录</caption>
+                {% if group0 %}
                     <thead>
                     <tr>
                         <th>用户名</th>
@@ -25,16 +28,16 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {%- for log in borrowing_logs -%}
+                    {% for log in group0.list|sort(attribute='return_timestamp',reverse=True) %}
                         <tr>
                             <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a></td>
                             <td class="hidden-xs">{{ log.user.email }}</td>
                             <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
-                            <td>{{ log.timestamp }}</td>
+                            <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                             {%- if g.user.is_authenticated -%}
                                 <td>{% if log.user.id == g.user.id %}
                                     <a class="btn btn-primary"
-                                       href="{{ url_for('giveback',bid=log.book.id,next=request.path) }}">
+                                       href="{{ url_for('book_return',bid=log.book.id,next=request.path) }}">
                                         归还
                                     </a>{% else %}
                                     <button class="btn btn-warning" disabled>待归还</button>{% endif %}</td>
@@ -42,33 +45,36 @@
                         </tr>
                     {% endfor %}
                     </tbody>
-                </table>
-            {% endif %}
-        </div>
+                {% endif %}
+            </table>
+        </div><!-- /tab-pane -->
+
         <div role="tabpanel" class="tab-pane" id="history">
-            {% if borrowed_logs %}
-                <table class="table table-striped table-hover">
-                    <caption>历史借阅记录</caption>
-                    <thead>
+            <table class="table table-striped table-hover">
+                <caption>历史借阅记录</caption>
+            {% if group1 %}
+                <thead>
+                <tr>
+                    <th>用户名</th>
+                    <th class="hidden-xs">用户邮箱</th>
+                    <th>借阅书籍</th>
+                    <th>借阅日期</th>
+                    <th>归还日期</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for log in group1.list|sort(attribute='return_timestamp',reverse=True) %}
                     <tr>
-                        <th>用户名</th>
-                        <th class="hhidden-xs">用户邮箱</th>
-                        <th>借阅书籍</th>
-                        <th>借阅日期</th>
+                    <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a></td>
+                    <td class="hidden-xs">{{ log.user.email }}</td>
+                    <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
+                    <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
+                    <td>{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {% for log in borrowed_logs %}
-                        <tr>
-                            <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a></td>
-                            <td class="hidden-xs">{{ log.user.email }}</td>
-                            <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
-                            <td>{{ log.timestamp }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                {% endfor %}
+                </tbody>
             {% endif %}
-        </div>
+            </table>
+        </div><!-- /tab-pane -->
     </div>
 {% endblock %}

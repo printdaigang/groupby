@@ -8,13 +8,15 @@ class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow())
+    borrow_timestamp = db.Column(db.DateTime, default=datetime.now())
+    return_timestamp = db.Column(db.DateTime, default=datetime.now())
     returned = db.Column(db.Boolean, default=0)
 
     def __init__(self, user, book):
         self.user = user
         self.book = book
-        self.timestamp = datetime.utcnow()
+        self.borrow_timestamp = datetime.now()
+        self.return_timestamp = datetime.now()
         self.returned = 0
 
     def __repr__(self):
@@ -63,6 +65,7 @@ class User(UserMixin, db.Model):
         log = self.logs.filter_by(book_id=book.id, returned=0).first()
         if log:
             log.returned = 1
+            log.return_timestamp = datetime.utcnow()
             db.session.add(log)
             db.session.commit()
             return True
