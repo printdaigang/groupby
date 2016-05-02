@@ -50,7 +50,7 @@ def book_detail(bid):
                            borrowed_data=borrowed_data, title=the_book.title)
 
 
-@app.route('/book/<int:bid>/edit', methods=['GET', 'POST'])
+@app.route('/book/<int:bid>/edit/', methods=['GET', 'POST'])
 @admin_required
 def book_edit(bid):
     book = Book.query.get_or_404(bid)
@@ -74,7 +74,27 @@ def book_edit(bid):
     form.category.data = book.category
     form.numbers.data = book.numbers
     form.description.data = book.description
-    return render_template("book_edit.html", form=form, book=book)
+    return render_template("book_edit.html", form=form, book=book, title=u"编辑书籍资料")
+
+
+@app.route('/book/add/', methods=['GET', 'POST'])
+@admin_required
+def book_add():
+    form = EditBook()
+    if form.validate_on_submit():
+        new_book = Book(
+            title=form.title.data,
+            subtitle=form.subtitle.data,
+            author=form.author.data,
+            isbn=form.isbn.data,
+            category=form.category.data,
+            numbers=form.numbers.data,
+            description=form.description.data)
+        db.session.add(new_book)
+        db.session.commit()
+        flash(u"书籍 %s 已添加至听说过!" % new_book.title, 'success')
+        return redirect(url_for('book_detail', bid=new_book.id))
+    return render_template("book_edit.html", form=form, title=u"添加新书")
 
 
 @app.route('/book/<int:bid>/borrow/')

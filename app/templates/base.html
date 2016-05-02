@@ -33,6 +33,10 @@
                 <ul class="nav navbar-nav">
                     <li {%- if request.path == url_for('book') %} class="active"{%- endif -%} ><a
                             href="{{ url_for('book') }}">书籍清单</a></li>
+                    {%- if g.user.admin -%}
+                        <li {%- if request.path == url_for('book_add') %} class="active"{%- endif -%} ><a
+                                href="{{ url_for('book_add') }}">添加新书</a></li>
+                    {%- endif -%}
                     <li {%- if request.path == url_for('user') %} class="active"{%- endif -%} ><a
                             href="{{ url_for('user') }}">已注册用户</a></li>
                     <li {%- if request.path == url_for('card') %} class="active"{%- endif -%} ><a
@@ -68,7 +72,7 @@
 
     <footer class="panel panel-inverse">
         <div id="site-footer-content">
-           <div> <a href="https://github.com/hufan-akari" target="_blank"><span
+            <div><a href="https://github.com/hufan-akari" target="_blank"><span
                     class="icon icon--github"><svg
                     viewBox="0 0 16 16">
                 <path fill="#828282"
