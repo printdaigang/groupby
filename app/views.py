@@ -3,7 +3,7 @@ from flask import render_template, redirect, request, url_for, flash, g, abort
 from app import app, lm, db
 from models import User, Book, Log
 from flask.ext.login import current_user, login_required, login_user, logout_user
-from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm
+from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm, SearchForm
 from functools import wraps
 
 
@@ -29,16 +29,24 @@ def before_request():
 
 @app.route('/')
 def index():
+    search_form = SearchForm()
     popular_books = Book.query.outerjoin(Log).group_by(Book.id).order_by(db.func.count(Log.id).desc()).limit(5)
     popular_users = User.query.outerjoin(Log).group_by(User.id).order_by(db.func.count(Log.id).desc()).limit(5)
     print popular_books
-    return render_template("index.html", books=popular_books, users=popular_users)
+    return render_template("index.html", books=popular_books, users=popular_users, search_form=search_form)
 
 
 @app.route('/book/')
 def book():
-    books = Book.query.all()
-    return render_template("book.html", books=books, title=u"书籍清单")
+    searchword = request.args.get('search', None)
+    search_form = SearchForm()
+    if searchword:
+        searchword = searchword.strip()
+        books = Book.query.filter(Book.title.ilike(u"%%%s%%" % searchword))
+        search_form.search.data = searchword
+    else:
+        books = Book.query.all()
+    return render_template("book.html", books=books, search_form=search_form, title=u"书籍清单")
 
 
 @app.route('/book/<int:bid>/')
@@ -224,3 +232,8 @@ def change_password():
         flash(u"密码更新成功!", 'success')
         return redirect(url_for('user_detail', uid=current_user.id))
     return render_template('user_edit.html', form=form, user=current_user, title=u"修改密码")
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
