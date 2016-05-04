@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "bootstrap/pagination.html" import render_pagination %}
 {% block mycontent %}
     <div class="container-fluid">
         <div class="col-sm-8 col-sm-offset-2">
@@ -50,4 +51,9 @@
         {%- endfor -%}
         </tbody>
     </table>
+    {% if pagination and pagination.pages > 1 %}
+        <div class="container-fluid text-center">
+            {{ render_pagination(pagination) }}
+        </div>
+    {% endif %}
 {%- endblock -%}

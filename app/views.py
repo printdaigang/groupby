@@ -40,13 +40,19 @@ def index():
 def book():
     searchword = request.args.get('search', None)
     search_form = SearchForm()
+    page = request.args.get('page', 1, type=int)
+
     if searchword:
         searchword = searchword.strip()
-        books = Book.query.filter(Book.title.ilike(u"%%%s%%" % searchword))
+        books = Book.query.filter(Book.title.ilike(u"%%%s%%" % searchword)).order_by(Book.id.desc())
         search_form.search.data = searchword
     else:
-        books = Book.query.all()
-    return render_template("book.html", books=books, search_form=search_form, title=u"书籍清单")
+        books = Book.query.order_by(Book.id.desc())
+
+    pagination = books.paginate(page, per_page=8)
+    result_books = pagination.items
+    return render_template("book.html", books=result_books, pagination=pagination, search_form=search_form,
+                           title=u"书籍清单")
 
 
 @app.route('/book/<int:bid>/')
@@ -54,7 +60,17 @@ def book_detail(bid):
     the_book = Book.query.get_or_404(bid)
     # borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=0).all())
     # borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=1).all())
-    return render_template("book_detail.html", book=the_book, logs=the_book.logs.all(), title=the_book.title)
+
+    show = request.args.get('show', 0, type=int)
+    if show != 0:
+        show = 1
+
+    page = request.args.get('page', 1, type=int)
+    pagination = the_book.logs.filter_by(returned=show) \
+        .order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=10)
+    logs = pagination.items
+
+    return render_template("book_detail.html", book=the_book, logs=logs, title=the_book.title)
 
 
 @app.route('/book/<int:bid>/edit/', methods=['GET', 'POST'])
@@ -117,7 +133,7 @@ def book_borrow(bid):
         flash(u"这本书太火了,我们已经没有馆藏了,请等待别人归还以后再来借阅", 'danger')
         return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
 
-    if current_user.borrow(the_book):
+    if current_user.borrow_book(the_book):
         flash(u"你成功GET到了一本 %s" % the_book.title, 'success')
     else:
         flash(u"借书失败", 'danger')
@@ -134,7 +150,7 @@ def book_return(bid):
         flash(u"你还没借这本书!", 'danger')
         return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
 
-    if current_user.giveback(the_book):
+    if current_user.return_book(the_book):
         flash(u"你成功归还了一本 %s" % the_book.title, 'success')
     else:
         flash(u"归还失败", 'danger')
@@ -143,8 +159,10 @@ def book_return(bid):
 
 @app.route('/user/')
 def user():
-    users = User.query.all()
-    return render_template("user.html", users=users, title=u"已注册用户")
+    page = request.args.get('page', 1, type=int)
+    pagination = User.query.order_by(User.id.desc()).paginate(page, per_page=10)
+    users = pagination.items
+    return render_template("user.html", users=users, pagination=pagination, title=u"已注册用户")
 
 
 @app.route('/user/<int:uid>/')
@@ -152,15 +170,30 @@ def user_detail(uid):
     the_user = User.query.get_or_404(uid)
     # borrowing_data = Log.query.filter_by(user_id=uid, returned=0).all()
     # borrowed_data = Log.query.filter_by(user_id=uid, returned=1).all()
-    return render_template("user_detail.html", user=the_user, logs=the_user.logs.all(), title=u"用户: " + the_user.name)
+
+    show = request.args.get('show', 0, type=int)
+    if show != 0:
+        show = 1
+
+    page = request.args.get('page', 1, type=int)
+    pagination = the_user.logs.filter_by(returned=show) \
+        .order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=10)
+    logs = pagination.items
+
+    return render_template("user_detail.html", user=the_user, logs=logs, pagination=pagination,
+                           title=u"用户: " + the_user.name)
 
 
 @app.route('/card/')
 def card():
-    # borrowing_logs = Log.query.filter_by(returned=0).order_by(Log.borrow_timestamp.desc()).all()
-    # borrowed_logs = Log.query.filter_by(returned=1).order_by(Log.borrow_timestamp.desc()).all()
-    logs = Log.query.all()
-    return render_template("card.html", logs=logs, title=u"借阅信息")
+    show = request.args.get('show', 0, type=int)
+    if show != 0:
+        show = 1
+
+    page = request.args.get('page', 1, type=int)
+    pagination = Log.query.filter_by(returned=show).order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=10)
+    logs = pagination.items
+    return render_template("card.html", logs=logs, pagination=pagination, title=u"借阅信息")
 
 
 @app.route('/login/', methods=['GET', 'POST'])

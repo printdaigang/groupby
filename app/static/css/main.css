@@ -29,3 +29,8 @@
     height: 16px;
     vertical-align: middle;
 }
+
+textarea {
+    min-height: 20rem;
+    resize: vertical;
+}

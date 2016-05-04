@@ -54,18 +54,18 @@ class User(UserMixin, db.Model):
     def borrowing(self, book):
         return self.logs.filter_by(book_id=book.id, returned=0).first() is not None
 
-    def borrow(self, book):
+    def borrow_book(self, book):
         if not self.borrowing(book):
             db.session.add(Log(self, book))
             db.session.commit()
             return True
         return False
 
-    def giveback(self, book):
+    def return_book(self, book):
         log = self.logs.filter_by(book_id=book.id, returned=0).first()
         if log:
             log.returned = 1
-            log.return_timestamp = datetime.utcnow()
+            log.return_timestamp = datetime.now()
             db.session.add(log)
             db.session.commit()
             return True
