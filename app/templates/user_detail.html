@@ -57,7 +57,7 @@
                             <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                             {%- if g.user.is_authenticated and g.user.id==user.id -%}
                                 <td><a class="btn btn-primary"
-                                       href="{{ url_for('book_return',bid=log.book.id,next=request.path) }}">
+                                       href="{{ url_for('book_return',lid=log.id,next=request.path) }}">
                                     归还</a></td>
                             {%- endif -%}
                         </tr>

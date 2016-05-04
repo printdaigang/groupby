@@ -34,3 +34,7 @@ textarea {
     min-height: 20rem;
     resize: vertical;
 }
+
+html, body, main {
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}

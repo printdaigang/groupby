@@ -88,7 +88,7 @@ def book_edit(bid):
         book.description = form.description.data
         db.session.add(book)
         db.session.commit()
-        flash(u"书籍资料已保存!", 'success')
+        flash(u'书籍资料已保存!', 'success')
         return redirect(url_for('book_detail', bid=bid))
     form.title.data = book.title
     form.subtitle.data = book.subtitle
@@ -115,7 +115,7 @@ def book_add():
             description=form.description.data)
         db.session.add(new_book)
         db.session.commit()
-        flash(u"书籍 %s 已添加至听说过!" % new_book.title, 'success')
+        flash(u'书籍 %s 已添加至图书馆!' % new_book.title, 'success')
         return redirect(url_for('book_detail', bid=new_book.id))
     return render_template("book_edit.html", form=form, title=u"添加新书")
 
@@ -124,37 +124,17 @@ def book_add():
 @login_required
 def book_borrow(bid):
     the_book = Book.query.get_or_404(bid)
-
-    if current_user.borrowing(the_book):
-        flash(u"貌似你已经借阅了这本书!", 'danger')
-        return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
-
-    if not the_book.can_borrow():
-        flash(u"这本书太火了,我们已经没有馆藏了,请等待别人归还以后再来借阅", 'danger')
-        return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
-
-    if current_user.borrow_book(the_book):
-        flash(u"你成功GET到了一本 %s" % the_book.title, 'success')
-    else:
-        flash(u"借书失败", 'danger')
-
+    flash(*current_user.borrow_book(the_book))
+    db.session.commit()
     return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
 
 
-@app.route('/book/<int:bid>/return/')
+@app.route('/book/return/<lid>/')
 @login_required
-def book_return(bid):
-    the_book = Book.query.get_or_404(bid)
-
-    if not current_user.borrowing(the_book):
-        flash(u"你还没借这本书!", 'danger')
-        return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
-
-    if current_user.return_book(the_book):
-        flash(u"你成功归还了一本 %s" % the_book.title, 'success')
-    else:
-        flash(u"归还失败", 'danger')
-    return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
+def book_return(lid):
+    flash(*current_user.return_book(lid))
+    db.session.commit()
+    return redirect(request.args.get('next') or url_for('book_detail', bid=lid))
 
 
 @app.route('/user/')
@@ -203,7 +183,7 @@ def login():
         the_user = User.query.filter(db.func.lower(User.email) == db.func.lower(login_form.email.data)).first()
         if the_user is not None and the_user.password == login_form.password.data:
             login_user(the_user, login_form.remember_me.data)
-            flash(u"登录成功!  欢迎您 %s" % the_user.name, 'success')
+            flash(u'登录成功!  欢迎您 %s' % the_user.name, 'success')
             return redirect(request.args.get('next') or url_for('index'))
         flash(u'用户名无效或密码错误', 'danger')
     return render_template("login.html", form=login_form, title=u"登入")
@@ -213,7 +193,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash(u"您已经成功登出!", 'info')
+    flash(u'您已经成功登出!', 'info')
     return redirect(url_for('index'))
 
 
@@ -244,7 +224,7 @@ def edit_profile(uid):
             the_user.about_me = form.about_me.data
             db.session.add(the_user)
             db.session.commit()
-            flash(u"资料更新成功!", "info")
+            flash(u'资料更新成功!', "info")
             return redirect(url_for('user_detail', uid=uid))
         form.name.data = the_user.name
         form.major.data = the_user.major
@@ -262,7 +242,7 @@ def change_password():
         current_user.password = form.new_password.data
         db.session.add(current_user)
         db.session.commit()
-        flash(u"密码更新成功!", 'success')
+        flash(u'密码更新成功!', 'info')
         return redirect(url_for('user_detail', uid=current_user.id))
     return render_template('user_edit.html', form=form, user=current_user, title=u"修改密码")
 

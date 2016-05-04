@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from app import db
 from flask.ext.login import UserMixin
 from datetime import datetime
@@ -52,24 +53,28 @@ class User(UserMixin, db.Model):
         return u'<User name=%r email=%r>' % (self.name, self.email)
 
     def borrowing(self, book):
-        return self.logs.filter_by(book_id=book.id, returned=0).first() is not None
+        return self.logs.filter_by(book_id=book.id, returned=0).first()
 
     def borrow_book(self, book):
-        if not self.borrowing(book):
-            db.session.add(Log(self, book))
-            db.session.commit()
-            return True
-        return False
+        if self.borrowing(book):
+            return u'貌似你已经借阅了这本书!!', 'warning'
+        if not book.can_borrow():
+            return u'这本书太火了,我们已经没有馆藏了,请等待别人归还以后再来借阅', 'danger'
 
-    def return_book(self, book):
-        log = self.logs.filter_by(book_id=book.id, returned=0).first()
+        db.session.add(Log(self, book))
+        return u'你成功GET到了一本 %s' % book.title, 'success'
+
+    def return_book(self, lid):
+        log = Log.query.get(lid)
         if log:
+            if log.returned == 1 or log.user_id != self.id:
+                return u'没有找到这条记录', 'danger'
             log.returned = 1
             log.return_timestamp = datetime.now()
             db.session.add(log)
-            db.session.commit()
-            return True
-        return False
+            return u'你归还了一本 %s' % log.book.title, 'success'
+        else:
+            return u'没有找到这条记录', 'danger'
 
     def books_count(self):
         return self.logs.count()

@@ -36,7 +36,7 @@
                         {%- if g.user.is_authenticated -%}
                             <td>{% if log.user.id == g.user.id %}
                                 <a class="btn btn-primary"
-                                   href="{{ url_for('book_return',bid=log.book.id,next=request.path) }}">
+                                   href="{{ url_for('book_return',lid=log.id,next=request.path) }}">
                                     归还
                                 </a>{% else %}
                                 <button class="btn btn-warning" disabled>待归还</button>{% endif %}</td>

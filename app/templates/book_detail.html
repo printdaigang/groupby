@@ -25,16 +25,18 @@
             </div>
             <div class="btn-group">
                 {%- if g.user.is_authenticated -%}
-                    {%- if g.user.borrowing(book) -%}
-                        <a class="btn btn-primary" href="{{ url_for('book_return',bid=book.id,next=request.path) }}">
-                            归还
-                        </a>
-                    {%- else -%}
-                        <a class="btn btn-success" href="{{ url_for('book_borrow',bid=book.id,next=request.path) }}"
-                           {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
-                            借阅
-                        </a>
-                    {%- endif -%}
+                    {% with  log=g.user.borrowing(book) %}
+                        {%- if log -%}
+                            <a class="btn btn-primary" href="{{ url_for('book_return',lid=log.id,next=request.path) }}">
+                                归还
+                            </a>
+                        {%- else -%}
+                            <a class="btn btn-success" href="{{ url_for('book_borrow',bid=book.id,next=request.path) }}"
+                               {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
+                                借阅
+                            </a>
+                        {%- endif -%}
+                    {% endwith %}
                 {%- endif -%}
                 {%- if g.user.admin -%}
                     <a type="button" class="btn btn-warning" href="{{ url_for('book_edit',bid=book.id) }}">编辑书籍信息
@@ -65,9 +67,6 @@
                             <th class="hidden-xs">用户邮箱</th>
                             <th>借阅书籍</th>
                             <th>借阅日期</th>
-                            {%- if g.user.is_authenticated -%}
-                                <th>操作</th>
-                            {%- endif -%}
                         </tr>
                         </thead>
                         <tbody>
@@ -77,14 +76,6 @@
                                 <td class="hidden-xs">{{ log.user.email }}</td>
                                 <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
                                 <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
-                                {%- if g.user.is_authenticated -%}
-                                    <td>{% if log.user.id == g.user.id %}
-                                        <a class="btn btn-primary"
-                                           href="{{ url_for('book_return',bid=log.book.id,next=request.path) }}">
-                                            归还
-                                        </a>{% else %}
-                                        <button class="btn btn-warning" disabled>待归还</button>{% endif %}</td>
-                                {%- endif -%}
                             </tr>
                         {% endfor %}
                         </tbody>
