@@ -18,7 +18,6 @@
             <th>书名</th>
             <th>作者</th>
             <th class="hidden-xs">ISBN</th>
-            <th class="hidden-xs">分类</th>
             <th>馆藏 / 可借</th>
             {%- if g.user.is_authenticated -%}
                 <th>操作</th>
@@ -31,7 +30,6 @@
                 <td><a href="{{ url_for('book_detail',bid=book.id) }}">{{ book.title }}</a></td>
                 <td>{{ book.author }}</td>
                 <td class="hidden-xs">{{ book.isbn }}</td>
-                <td class="hidden-xs">{{ book.category }}</td>
                 <td>{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
                 {%- if g.user.is_authenticated -%}
                     {% with log=g.user.borrowing(book) %}

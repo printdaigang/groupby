@@ -21,6 +21,7 @@
                     <th class="hidden-xs">用户邮箱</th>
                     <th>借阅书籍</th>
                     <th>借阅日期</th>
+                    <th>借阅日期</th>
                     {%- if g.user.is_authenticated -%}
                         <th>操作</th>
                     {%- endif -%}
@@ -33,6 +34,7 @@
                         <td class="hidden-xs">{{ log.user.email }}</td>
                         <td><a href="{{ url_for('book_detail',bid=log.book.id) }}">{{ log.book.title }}</a></td>
                         <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
+                        <td>{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                         {%- if g.user.is_authenticated -%}
                             <td>{% if log.user.id == g.user.id %}
                                 <a class="btn btn-primary"

@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField, FileField
 from wtforms import ValidationError
-from wtforms.validators import Email, Length, DataRequired, EqualTo
+from wtforms.validators import Email, Length, DataRequired, EqualTo, Regexp
 from .models import User
+from flask.ext.pagedown.fields import PageDownField
 
 
 class LoginForm(Form):
@@ -31,20 +32,31 @@ class RegistrationForm(Form):
 
 
 class EditProfileForm(Form):
-    name = StringField(u'用户名', validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 64)])
-    major = StringField(u'主修专业', validators=[Length(0, 128)])
+    name = StringField(u'用户名', validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 64, message=u"长度为1到64个字符")])
+    major = StringField(u'主修专业', validators=[Length(0, 128, message=u"长度为0到128个字符")])
     about_me = TextAreaField(u"用户自我简介")
     submit = SubmitField(u"保存更改")
 
 
 class EditBookForm(Form):
-    title = StringField(u"书名", validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 128)])
-    subtitle = StringField(u"副标题", validators=[Length(0, 256)])
-    author = StringField(u"作者", validators=[DataRequired(message=u"该项忘了填写了!"), Length(0, 64)])
-    isbn = StringField(u"ISBN", validators=[DataRequired(message=u"该项忘了填写了!"), Length(0, 32)])
-    category = StringField(u"分类", validators=[DataRequired(message=u"该项忘了填写了!"), Length(0, 64)])
+    isbn = StringField(u"ISBN",
+                       validators=[DataRequired(message=u"该项忘了填写了!"), Regexp('[0-9]{13,13}', message=u"ISBN必须是13位数字")])
+    title = StringField(u"书名", validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 128, message=u"长度为1到128个字符")])
+    origin_title = StringField(u"原作名", validators=[Length(0, 128, message=u"长度为0到128个字符")])
+    subtitle = StringField(u"副标题", validators=[Length(0, 128, message=u"长度为0到128个字符")])
+    author = StringField(u"作者", validators=[Length(0, 128, message=u"长度为0到64个字符")])
+    translator = StringField(u"译者",
+                             validators=[Length(0, 64, message=u"长度为0到64个字符")])
+    publisher = StringField(u"出版社", validators=[Length(0, 64, message=u"长度为0到64个字符")])
+    image = StringField(u"图片地址", validators=[Length(0, 128, message=u"长度为0到128个字符")])
+    pubdate = StringField(u"出版日期", validators=[Length(0, 32, message=u"长度为0到32个字符")])
+    tags = StringField(u"标签", validators=[Length(0, 128, message=u"长度为0到128个字符")])
+    pages = IntegerField(u"页数")
+    price = StringField(u"定价", validators=[Length(0, 64, message=u"长度为0到32个字符")])
+    binding = StringField(u"装帧", validators=[Length(0, 16, message=u"长度为0到16个字符")])
     numbers = IntegerField(u"馆藏", validators=[DataRequired(message=u"该项忘了填写了!")])
-    description = TextAreaField(u"内容简介")
+    summary = PageDownField(u"内容简介")
+    catalog = PageDownField(u"目录")
     submit = SubmitField(u"保存更改")
 
 
@@ -63,4 +75,10 @@ class ChangePasswordForm(Form):
 
 
 class SearchForm(Form):
-    search = StringField(u"搜索书籍", validators=[DataRequired])
+    search = StringField(u"搜索书籍", validators=[DataRequired()])
+
+
+class CommentForm(Form):
+    comment = TextAreaField(u"你的书评",
+                            validators=[DataRequired(message=u"内容不能为空"), Length(1, 1024, message=u"书评长度限制在1024字符以内")])
+    submit = SubmitField(u"发布")

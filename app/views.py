@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 from flask import render_template, redirect, request, url_for, flash, g, abort
 from app import app, lm, db
-from models import User, Book, Log
+from models import User, Book, Log, Comment
 from flask.ext.login import current_user, login_required, login_user, logout_user
-from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm, SearchForm
+from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm, SearchForm, \
+    CommentForm
 from functools import wraps
 
 
@@ -32,7 +33,7 @@ def index():
     search_form = SearchForm()
     popular_books = Book.query.outerjoin(Log).group_by(Book.id).order_by(db.func.count(Log.id).desc()).limit(5)
     popular_users = User.query.outerjoin(Log).group_by(User.id).order_by(db.func.count(Log.id).desc()).limit(5)
-    print popular_books
+    # print popular_books
     return render_template("index.html", books=popular_books, users=popular_users, search_form=search_form)
 
 
@@ -62,15 +63,20 @@ def book_detail(bid):
     # borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=1).all())
 
     show = request.args.get('show', 0, type=int)
-    if show != 0:
-        show = 1
-
     page = request.args.get('page', 1, type=int)
-    pagination = the_book.logs.filter_by(returned=show) \
-        .order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=10)
-    logs = pagination.items
+    form = CommentForm()
 
-    return render_template("book_detail.html", book=the_book, logs=logs, title=the_book.title)
+    if show in (1, 2):
+        pagination = the_book.logs.filter_by(returned=show - 1) \
+            .order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=5)
+    else:
+        pagination = the_book.comments.filter_by(deleted=0) \
+            .order_by(Comment.edit_timestamp.desc()).paginate(page, per_page=5)
+
+    data = pagination.items
+    # print data
+    return render_template("book_detail.html", book=the_book, data=data, pagination=pagination, form=form,
+                           title=the_book.title)
 
 
 @app.route('/book/<int:bid>/edit/', methods=['GET', 'POST'])
@@ -79,25 +85,55 @@ def book_edit(bid):
     book = Book.query.get_or_404(bid)
     form = EditBookForm()
     if form.validate_on_submit():
+        book.isbn = form.isbn.data
         book.title = form.title.data
+        book.origin_title = form.origin_title.data
         book.subtitle = form.subtitle.data
         book.author = form.author.data
-        book.isbn = form.isbn.data
-        book.category = form.category.data
+        book.translator = form.translator.data
+        book.publisher = form.publisher.data
+        book.image = form.image.data
+        book.pubdate = form.pubdate.data
+        book.tags = form.tags.data
+        book.pages = form.pages.data
+        book.price = form.price.data
+        book.binding = form.binding.data
         book.numbers = form.numbers.data
-        book.description = form.description.data
+        book.summary = form.summary.data
+        book.catalog = form.catalog.data
         db.session.add(book)
         db.session.commit()
         flash(u'书籍资料已保存!', 'success')
         return redirect(url_for('book_detail', bid=bid))
+    form.isbn.data = book.isbn
     form.title.data = book.title
+    form.origin_title.data = book.origin_title
     form.subtitle.data = book.subtitle
     form.author.data = book.author
-    form.isbn.data = book.isbn
-    form.category.data = book.category
+    form.translator.data = book.translator
+    form.publisher.data = book.publisher
+    form.image.data = book.image
+    form.pubdate.data = book.pubdate
+    form.tags.data = book.tags
+    form.pages.data = book.pages
+    form.price.data = book.price
+    form.binding.data = book.binding
     form.numbers.data = book.numbers
-    form.description.data = book.description
+    form.summary.data = book.summary or ""
+    form.catalog.data = book.catalog or ""
     return render_template("book_edit.html", form=form, book=book, title=u"编辑书籍资料")
+
+
+@app.route('/book/<int:bid>/comment/', methods=['POST', ])
+@login_required
+def book_comment(bid):
+    form = CommentForm()
+    if form.validate_on_submit():
+        # print form.comment.data
+        comment = Comment(user=current_user, book=Book.query.get_or_404(bid), comment=form.comment.data)
+        db.session.add(comment)
+        db.session.commit()
+    return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
 
 
 @app.route('/book/add/', methods=['GET', 'POST'])
@@ -106,13 +142,22 @@ def book_add():
     form = EditBookForm()
     if form.validate_on_submit():
         new_book = Book(
+            isbn=form.isbn.data,
             title=form.title.data,
+            origin_title=form.origin_title.data,
             subtitle=form.subtitle.data,
             author=form.author.data,
-            isbn=form.isbn.data,
-            category=form.category.data,
+            translator=form.translator.data,
+            publisher=form.publisher.data,
+            image=form.image.data,
+            pubdate=form.pubdate.data,
+            tags=form.tags.data,
+            pages=form.pages.data,
+            price=form.price.data,
+            binding=form.binding.data,
             numbers=form.numbers.data,
-            description=form.description.data)
+            summary=form.summary.data or "",
+            catalog=form.catalog.data or "")
         db.session.add(new_book)
         db.session.commit()
         flash(u'书籍 %s 已添加至图书馆!' % new_book.title, 'success')
@@ -229,6 +274,7 @@ def edit_profile(uid):
         form.name.data = the_user.name
         form.major.data = the_user.major
         form.about_me.data = the_user.about_me
+
         return render_template('user_edit.html', form=form, user=the_user, title=u"编辑资料")
     else:
         abort(403)

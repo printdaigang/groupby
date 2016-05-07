@@ -38,3 +38,53 @@ textarea {
 html, body, main {
     font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+
+#accordion h1 {
+    font-size: 3rem !important;
+}
+
+#accordion h2 {
+    font-size: 2.5rem !important;
+}
+
+#accordion h3 {
+    font-size: 2rem !important;
+}
+
+#accordion p {
+    font-size: 1.5rem !important;
+}
+
+.panel-body, [class^='flask-pagedown-'] {
+    max-height: 50rem;
+    overflow-y: scroll;
+}
+
+.primary-info {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.primary-info > ul {
+    flex: 1;
+}
+
+.primary-info > img {
+    max-height: 400px;
+}
+
+@media screen and (max-width: 768px) {
+    .primary-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .primary-info > img {
+        max-width: 200px;
+    }
+
+    .panel-body, [class^="flask-pagedown-"] {
+        max-height: 25rem;
+        overflow-y: scroll;
+    }
+}

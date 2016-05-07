@@ -1,7 +1,9 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 from app import db
 from flask.ext.login import UserMixin
-from datetime import datetime
+from datetime import datetime, timedelta
+import bleach
+from markdown import markdown
 
 
 class Log(db.Model):
@@ -17,7 +19,7 @@ class Log(db.Model):
         self.user = user
         self.book = book
         self.borrow_timestamp = datetime.now()
-        self.return_timestamp = datetime.now()
+        self.return_timestamp = datetime.now() + timedelta(days=30)
         self.returned = 0
 
     def __repr__(self):
@@ -41,13 +43,18 @@ class User(UserMixin, db.Model):
                            lazy='dynamic',
                            cascade='all, delete-orphan')
 
-    def __init__(self, email, name, password, major=None, admin=False, description=None):
-        self.email = email
-        self.name = name
-        self.password = password
-        self.major = major
-        self.admin = admin
-        self.description = description
+    comments = db.relationship('Comment',
+                               backref=db.backref('user', lazy='joined'),
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
+
+    # def __init__(self, email, name, password, major=None, admin=False, description=None):
+    #     self.email = email
+    #     self.name = name
+    #     self.password = password
+    #     self.major = major
+    #     self.admin = admin
+    #     self.description = description
 
     def __repr__(self):
         return u'<User name=%r email=%r>' % (self.name, self.email)
@@ -56,6 +63,8 @@ class User(UserMixin, db.Model):
         return self.logs.filter_by(book_id=book.id, returned=0).first()
 
     def borrow_book(self, book):
+        if self.logs.filter(Log.returned == 0, Log.return_timestamp < datetime.now()).count() > 0:
+            return u"无法借阅,你有超期的图书未归还", 'danger'
         if self.borrowing(book):
             return u'貌似你已经借阅了这本书!!', 'warning'
         if not book.can_borrow():
@@ -83,15 +92,24 @@ class User(UserMixin, db.Model):
 class Book(db.Model):
     __tablename__ = 'books'
     id = db.Column(db.Integer, primary_key=True)
-    isbn = db.Column(db.String(32), unique=True)
+    isbn = db.Column(db.String(16), unique=True)
     title = db.Column(db.String(128))
-    subtitle = db.Column(db.String(256))
-    author = db.Column(db.String(64))
-    category = db.Column(db.String(64))
-    description = db.deferred(db.Column(db.Text))
+    origin_title = db.Column(db.String(128))
+    subtitle = db.Column(db.String(128))
+    author = db.Column(db.String(128))
+    translator = db.Column(db.String(64))
+    publisher = db.Column(db.String(64))
+    image = db.Column(db.String(128))
+    pubdate = db.Column(db.String(32))
+    tags = db.Column(db.String(128))
+    pages = db.Column(db.Integer)
+    price = db.Column(db.String(16))
+    binding = db.Column(db.String(16))
     numbers = db.Column(db.Integer, default=5)
-
-    # logs = db.relationship('Log', backref='book', lazy='dynamic')
+    summary = db.deferred(db.Column(db.Text, default=""))
+    summary_html = db.deferred(db.Column(db.Text))
+    catalog = db.deferred(db.Column(db.Text, default=""))
+    catalog_html = db.deferred(db.Column(db.Text))
 
     logs = db.relationship('Log',
                            foreign_keys=[Log.book_id],
@@ -99,14 +117,18 @@ class Book(db.Model):
                            lazy='dynamic',
                            cascade='all, delete-orphan')
 
-    def __init__(self, title, subtitle=None, author=None, isbn=None, category=None, description=None, numbers=5):
-        self.isbn = isbn
-        self.title = title
-        self.subtitle = subtitle
-        self.author = author
-        self.category = category
-        self.description = description
-        self.numbers = numbers
+    comments = db.relationship('Comment', backref='book',
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
+
+    # def __init__(self, title, subtitle=None, author=None, isbn=None, category=None, description="", numbers=5):
+    #     self.isbn = isbn
+    #     self.title = title
+    #     self.subtitle = subtitle
+    #     self.author = author
+    #     self.category = category
+    #     self.description = description
+    #     self.numbers = numbers
 
     def can_borrow(self):
         return Log.query.filter_by(book_id=self.id, returned=0).count() < self.numbers
@@ -114,5 +136,44 @@ class Book(db.Model):
     def can_borrow_number(self):
         return self.numbers - Log.query.filter_by(book_id=self.id, returned=0).count()
 
+    @staticmethod
+    def on_changed_summary(target, value, oldvalue, initiaor):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquate', 'code', 'em', 'i',
+                        'li', 'ol', 'pre', 'strong', 'ul', 'h1', 'h2', 'h3', 'p']
+        target.summary_html = bleach.linkify(
+            bleach.clean(markdown(value, output_format='html'),
+                         tags=allowed_tags, strip=True))
+
+    @staticmethod
+    def on_changed_catalog(target, value, oldvalue, initiaor):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquate', 'code', 'em', 'i',
+                        'li', 'ol', 'pre', 'strong', 'ul', 'h1', 'h2', 'h3', 'p']
+        target.catalog_html = bleach.linkify(
+            bleach.clean(markdown(value, output_format='html'),
+                         tags=allowed_tags, strip=True))
+
     def __repr__(self):
         return u'<Book %r>' % self.title
+
+
+db.event.listen(Book.summary, 'set', Book.on_changed_summary)
+db.event.listen(Book.catalog, 'set', Book.on_changed_catalog)
+
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
+    comment = db.Column(db.String(1024))
+    create_timestamp = db.Column(db.DateTime, default=datetime.now())
+    edit_timestamp = db.Column(db.DateTime, default=datetime.now())
+    deleted = db.Column(db.Boolean, default=0)
+
+    def __init__(self, book, user, comment):
+        self.user = user
+        self.book = book
+        self.comment = comment
+        self.create_timestamp = datetime.now()
+        self.edit_timestamp = datetime.now()
+        self.deleted = 0
