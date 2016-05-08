@@ -84,10 +84,9 @@
                                     </span>
                                 {% endif %}
                             </p>
-                            <a class="list-group-item-text"
-                               href="{{ url_for('book_detail',book_id=comment.book_id) }}">{{ comment.comment }}</a>
-
-
+                            <span class="line-wrap">{{ "评价了 「"~comment.book.title~"」 : " }}</span>
+                            <span class="line-wrap"><a class="list-group-item-text"
+                                                       href="{{ url_for('book_detail',book_id=comment.book_id) }}">{{ comment.comment }}</a></span>
                         </div>
                     </div>
                 </li>

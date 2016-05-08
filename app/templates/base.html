@@ -1,5 +1,8 @@
 {% extends "bootstrap/base.html" %}
 {% from 'bootstrap/utils.html' import flashed_messages,icon %}
+{%- block metas %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+{%- endblock metas %}
 {%- block title -%}
     {%- if title -%}
         {{ title }} - Book Library
@@ -15,7 +18,7 @@
 {%- endblock -%}
 {% block body_attribs %} class="Site"{% endblock %}
 {%- block navbar -%}
-    <nav class="navbar  navbar-inverse">
+    <nav class="navbar  navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
