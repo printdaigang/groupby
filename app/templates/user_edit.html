@@ -12,3 +12,10 @@
         {{ wtf.quick_form(form,button_map={'submit':'success'}) }}
     </div>
 {% endblock %}
+
+{%- block scripts -%}
+    {{ super() }}
+    {#    {{ pagedown.include_pagedown() }}#}
+    <script src="{{ url_for('static',filename='js/Markdown.Converter.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/Markdown.Sanitizer.min.js') }}"></script>
+{%- endblock -%}

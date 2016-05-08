@@ -1,18 +1,42 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 .Site {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     display: flex;
-    min-height: 100vh;
     flex-direction: column;
 }
 
 .Site-content {
-    flex: 1;
+    padding: 0;
+    margin: 0;
+    -webkit-box-flex: 1 0 auto;
+    -moz-box-flex: 1 0 auto;
+    -webkit-flex: 1 0 auto;
+    -ms-flex: 1 0 auto;
+    flex: 1 0 auto;
+    width: 100%;
+
 }
 
 .panel.panel-inverse {
+    -webkit-box-flex: none;
+    -moz-box-flex: none;
+    -webkit-flex: none;
+    -ms-flex: none;
+    flex: none;
     margin-bottom: 0;
     background-color: #424242;
     color: white;
     text-align: center;
+    padding: 1rem;
 }
 
 .panel.panel-inverse a {
@@ -55,7 +79,7 @@ html, body, main {
     font-size: 1.5rem !important;
 }
 
-.panel-body, [class^='flask-pagedown-'] {
+.panel-body[class^='flask-pagedown-'] {
     max-height: 50rem;
     overflow-y: scroll;
 }
@@ -87,4 +111,52 @@ html, body, main {
         max-height: 25rem;
         overflow-y: scroll;
     }
+}
+
+.avatar {
+    background-position: center;
+    box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+    -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+    -moz-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+    background-size: cover;
+    transition: transform .5s ease-in-out;
+
+}
+
+.avatar-large {
+    width: 250px;
+    height: 250px;
+    border-radius: 125px;
+    -webkit-border-radius: 125px;
+    -moz-border-radius: 125px;
+    margin: 20px;
+}
+
+.avatar-small {
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    -webkit-border-radius: 40px;
+    -moz-border-radius: 40px;
+    margin: 10px;
+}
+
+.avatar-mini {
+    width: 25px;
+    height: 25px;
+    border-radius: 25px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    margin: 1px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, .8);
+    -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, .8);
+    -moz-box-shadow: 0 0 2px rgba(0, 0, 0, .8);
+}
+
+.list-group-item:hover .avatar-small {
+    transform: rotate(360deg);
+}
+
+.avatar-large:hover {
+    transform: rotate(360deg);
 }

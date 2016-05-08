@@ -2,10 +2,10 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {%- block mycontent -%}
 
-    <div class="container  well well-lg">
+    <div class="container-fluid well well-lg">
 
         <h3>{{ title }}</h3>
-        <button id="get_book_from_douban" class="btn btn-primary">从豆瓣加载书籍信息</button>
+        <button id="get_book_from_douban" class="btn btn-primary btn-block">从豆瓣加载书籍信息</button>
         {{ wtf.quick_form(form,button_map={'submit':'success'}) }}
     </div>
 

@@ -5,9 +5,10 @@ import models
 db.create_all()
 from models import User, Book, Log
 
-admin = User(name=u'root', email='root@gmail.com', password='pass', major='administrator', admin=True)
-user1 = User(name=U'胡凡', email='hufan@qq.com', password='123456', major='Computer Science')
-user2 = User(name=U'陈鲳鱼', email='ccy@stupid.com', password='stupid', major='Computer Science')
+admin = User(name=u'root', email='root@gmail.com', password='password', major='administrator', admin=True,
+             headline=u"临时管理员一枚", about_me=u"毕业于管理系,爱好读书,因此兼职图书馆管理员.")
+user1 = User(name=U'胡凡', email='hufan@ahut.edu.cn', password='123456', major='Computer Science', headline=u"普通的学生")
+user2 = User(name=U'陈鲳鱼', email='ccy@ahut.edu.cn', password='123456', major='Computer Science', headline=u"咸鱼也能翻身")
 user3 = User(name=u'あかり', email=u'akari@anime.com', password=u'akari', major=u'アニメ')
 
 book1 = Book(title=u"Flask Web 开发", subtitle=u"基于Python的Web应用开发框架", author=u"Miguel Grinberg", isbn='9787115373991',

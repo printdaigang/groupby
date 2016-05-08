@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
 from flask import render_template, redirect, request, url_for, flash, g, abort
-from app import app, lm, db
-from models import User, Book, Log, Comment
+from app import app, lm, db, avatars
+from .models import User, Book, Log, Comment
 from flask.ext.login import current_user, login_required, login_user, logout_user
 from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm, SearchForm, \
-    CommentForm
+    CommentForm, AvatarEditForm, AvatarUploadForm
 from functools import wraps
 
 
@@ -33,8 +33,10 @@ def index():
     search_form = SearchForm()
     popular_books = Book.query.outerjoin(Log).group_by(Book.id).order_by(db.func.count(Log.id).desc()).limit(5)
     popular_users = User.query.outerjoin(Log).group_by(User.id).order_by(db.func.count(Log.id).desc()).limit(5)
+    recently_comments = Comment.query.filter_by(deleted=0).order_by(Comment.edit_timestamp.desc()).limit(5)
     # print popular_books
-    return render_template("index.html", books=popular_books, users=popular_users, search_form=search_form)
+    return render_template("index.html", books=popular_books, users=popular_users, recently_comments=recently_comments,
+                           search_form=search_form)
 
 
 @app.route('/book/')
@@ -56,11 +58,11 @@ def book():
                            title=u"书籍清单")
 
 
-@app.route('/book/<int:bid>/')
-def book_detail(bid):
-    the_book = Book.query.get_or_404(bid)
-    # borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=0).all())
-    # borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=bid, returned=1).all())
+@app.route('/book/<book_id>/')
+def book_detail(book_id):
+    the_book = Book.query.get_or_404(book_id)
+    # borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=0).all())
+    # borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=1).all())
 
     show = request.args.get('show', 0, type=int)
     page = request.args.get('page', 1, type=int)
@@ -79,10 +81,10 @@ def book_detail(bid):
                            title=the_book.title)
 
 
-@app.route('/book/<int:bid>/edit/', methods=['GET', 'POST'])
+@app.route('/book/<int:book_id>/edit/', methods=['GET', 'POST'])
 @admin_required
-def book_edit(bid):
-    book = Book.query.get_or_404(bid)
+def book_edit(book_id):
+    book = Book.query.get_or_404(book_id)
     form = EditBookForm()
     if form.validate_on_submit():
         book.isbn = form.isbn.data
@@ -104,7 +106,7 @@ def book_edit(bid):
         db.session.add(book)
         db.session.commit()
         flash(u'书籍资料已保存!', 'success')
-        return redirect(url_for('book_detail', bid=bid))
+        return redirect(url_for('book_detail', book_id=book_id))
     form.isbn.data = book.isbn
     form.title.data = book.title
     form.origin_title.data = book.origin_title
@@ -124,22 +126,11 @@ def book_edit(bid):
     return render_template("book_edit.html", form=form, book=book, title=u"编辑书籍资料")
 
 
-@app.route('/book/<int:bid>/comment/', methods=['POST', ])
-@login_required
-def book_comment(bid):
-    form = CommentForm()
-    if form.validate_on_submit():
-        # print form.comment.data
-        comment = Comment(user=current_user, book=Book.query.get_or_404(bid), comment=form.comment.data)
-        db.session.add(comment)
-        db.session.commit()
-    return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
-
-
 @app.route('/book/add/', methods=['GET', 'POST'])
 @admin_required
 def book_add():
     form = EditBookForm()
+    form.numbers.data = 3
     if form.validate_on_submit():
         new_book = Book(
             isbn=form.isbn.data,
@@ -161,17 +152,17 @@ def book_add():
         db.session.add(new_book)
         db.session.commit()
         flash(u'书籍 %s 已添加至图书馆!' % new_book.title, 'success')
-        return redirect(url_for('book_detail', bid=new_book.id))
+        return redirect(url_for('book_detail', book_id=new_book.id))
     return render_template("book_edit.html", form=form, title=u"添加新书")
 
 
-@app.route('/book/<int:bid>/borrow/')
+@app.route('/book/<int:book_id>/borrow/')
 @login_required
-def book_borrow(bid):
-    the_book = Book.query.get_or_404(bid)
+def book_borrow(book_id):
+    the_book = Book.query.get_or_404(book_id)
     flash(*current_user.borrow_book(the_book))
     db.session.commit()
-    return redirect(request.args.get('next') or url_for('book_detail', bid=bid))
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
 @app.route('/book/return/<lid>/')
@@ -179,7 +170,18 @@ def book_borrow(bid):
 def book_return(lid):
     flash(*current_user.return_book(lid))
     db.session.commit()
-    return redirect(request.args.get('next') or url_for('book_detail', bid=lid))
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=lid))
+
+
+@app.route('/book/<int:book_id>/comment/', methods=['POST', ])
+@login_required
+def add_comment(book_id):
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(user=current_user, book=Book.query.get_or_404(book_id), comment=form.comment.data)
+        db.session.add(comment)
+        db.session.commit()
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
 @app.route('/user/')
@@ -190,11 +192,11 @@ def user():
     return render_template("user.html", users=users, pagination=pagination, title=u"已注册用户")
 
 
-@app.route('/user/<int:uid>/')
-def user_detail(uid):
-    the_user = User.query.get_or_404(uid)
-    # borrowing_data = Log.query.filter_by(user_id=uid, returned=0).all()
-    # borrowed_data = Log.query.filter_by(user_id=uid, returned=1).all()
+@app.route('/user/<int:user_id>/')
+def user_detail(user_id):
+    the_user = User.query.get_or_404(user_id)
+    # borrowing_data = Log.query.filter_by(user_id=user_id, returned=0).all()
+    # borrowed_data = Log.query.filter_by(user_id=user_id, returned=1).all()
 
     show = request.args.get('show', 0, type=int)
     if show != 0:
@@ -207,6 +209,59 @@ def user_detail(uid):
 
     return render_template("user_detail.html", user=the_user, logs=logs, pagination=pagination,
                            title=u"用户: " + the_user.name)
+
+
+@app.route('/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile(user_id):
+    if current_user.id == user_id or current_user.admin:
+        the_user = User.query.get_or_404(user_id)
+        form = EditProfileForm()
+        if form.validate_on_submit():
+            the_user.name = form.name.data
+            the_user.major = form.major.data
+            the_user.headline = form.headline.data
+            the_user.about_me = form.about_me.data
+            db.session.add(the_user)
+            db.session.commit()
+            flash(u'资料更新成功!', "info")
+            return redirect(url_for('user_detail', user_id=user_id))
+        form.name.data = the_user.name
+        form.major.data = the_user.major
+        form.headline.data = the_user.headline
+        form.about_me.data = the_user.about_me
+
+        return render_template('user_edit.html', form=form, user=the_user, title=u"编辑资料")
+    else:
+        abort(403)
+
+
+@app.route('/user/<int:user_id>/avatar_edit', methods=['GET', 'POST'])
+@login_required
+def avatar_edit(user_id):
+    if current_user.id == user_id or current_user.admin:
+        the_user = User.query.get_or_404(user_id)
+        avatar_edit_form = AvatarEditForm()
+        avatar_upload_form = AvatarUploadForm()
+        if avatar_upload_form.validate_on_submit():
+            print "avatar_edit_form"
+            if 'avatar' in request.files:
+                forder = str(user_id)
+                avatar_name = avatars.save(avatar_upload_form.avatar.data, folder=forder)
+                the_user.avatar = '/_uploads/avatars/%s' % avatar_name
+                db.session.add(the_user)
+                db.session.commit()
+                flash(u'头像更新成功!', 'success')
+                return redirect(url_for('user_detail', user_id=user_id))
+        if avatar_edit_form.validate_on_submit():
+            the_user.avatar = avatar_edit_form.avatar_url.data
+            db.session.add(the_user)
+            db.session.commit()
+            return redirect(url_for('user_detail', user_id=user_id))
+        return render_template('avatar_edit.html', user=the_user, avatar_edit_form=avatar_edit_form,
+                               avatar_upload_form=avatar_upload_form, title=u"更换头像")
+    else:
+        abort(403)
 
 
 @app.route('/card/')
@@ -228,9 +283,9 @@ def login():
         the_user = User.query.filter(db.func.lower(User.email) == db.func.lower(login_form.email.data)).first()
         if the_user is not None and the_user.password == login_form.password.data:
             login_user(the_user, login_form.remember_me.data)
-            flash(u'登录成功!  欢迎您 %s' % the_user.name, 'success')
+            flash(u'登录成功!  欢迎您 %s!' % the_user.name, 'success')
             return redirect(request.args.get('next') or url_for('index'))
-        flash(u'用户名无效或密码错误', 'danger')
+        flash(u'用户名无效或密码错误!', 'danger')
     return render_template("login.html", form=login_form, title=u"登入")
 
 
@@ -251,33 +306,10 @@ def register():
                         password=form.password.data)
         db.session.add(the_user)
         db.session.commit()
-        flash(u'注册成功! 欢迎您 %s' % form.name.data, 'success')
+        flash(u'注册成功! 欢迎您 %s!' % form.name.data, 'success')
         login_user(the_user)
         return redirect(request.args.get('next') or url_for('index'))
     return render_template('register.html', form=form, title=u"新用户注册")
-
-
-@app.route('/user/<int:uid>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_profile(uid):
-    if current_user.id == uid or current_user.admin:
-        the_user = User.query.get_or_404(uid)
-        form = EditProfileForm()
-        if form.validate_on_submit():
-            the_user.name = form.name.data
-            the_user.major = form.major.data
-            the_user.about_me = form.about_me.data
-            db.session.add(the_user)
-            db.session.commit()
-            flash(u'资料更新成功!', "info")
-            return redirect(url_for('user_detail', uid=uid))
-        form.name.data = the_user.name
-        form.major.data = the_user.major
-        form.about_me.data = the_user.about_me
-
-        return render_template('user_edit.html', form=form, user=the_user, title=u"编辑资料")
-    else:
-        abort(403)
 
 
 @app.route('/change_password/', methods=['GET', 'POST'])
@@ -289,10 +321,35 @@ def change_password():
         db.session.add(current_user)
         db.session.commit()
         flash(u'密码更新成功!', 'info')
-        return redirect(url_for('user_detail', uid=current_user.id))
+        return redirect(url_for('user_detail', user_id=current_user.id))
     return render_template('user_edit.html', form=form, user=current_user, title=u"修改密码")
+
+
+@app.route('/commnet/delete/<int:comment_id>')
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user.id == comment.user_id or current_user.admin:
+        comment.deleted = 1
+        book_id = comment.book_id
+        db.session.add(comment)
+        db.session.commit()
+        flash(u'成功删除一条评论.', 'info')
+        return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
+    else:
+        abort(403)
 
 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+
+@app.errorhandler(413)
+def request_entity_too_large(e):
+    return 'Request Entity Too Large', 413
+
+
+@app.errorhandler(415)
+def UploadNotAllowed(e):
+    return 'Upload Not Allowed', 415

@@ -99,7 +99,7 @@
                             </a>
                         {%- else -%}
                             <a class="btn btn-success"
-                               href="{{ url_for('book_borrow',bid=book.id,next=request.full_path) }}"
+                               href="{{ url_for('book_borrow',book_id=book.id,next=request.full_path) }}"
                                {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
                                 借阅
                             </a>
@@ -107,7 +107,7 @@
                     {% endwith %}
                 {%- endif -%}
                 {%- if g.user.admin -%}
-                    <a type="button" class="btn btn-warning" href="{{ url_for('book_edit',bid=book.id) }}">编辑书籍信息
+                    <a type="button" class="btn btn-warning" href="{{ url_for('book_edit',book_id=book.id) }}">编辑书籍信息
                     </a>
                 {%- endif -%}
             </div>
@@ -117,39 +117,73 @@
             <ul class="nav nav-tabs" role="tablist" id="log">
                 {% with tabindex= request.args.get('show') or '0' %}
                     <li role="presentation" {% if tabindex=='0' %}class="active"{% endif %}><a
-                            href="{% if tabindex=='0' %}#log{% else %}{{ url_for('book_detail',bid=book.id,show=0,_anchor='log') }}{% endif %}"
+                            href="{% if tabindex=='0' %}#log{% else %}{{ url_for('book_detail',book_id=book.id,show=0,_anchor='log') }}{% endif %}"
                             role="tab">书评</a></li>
                     <li role="presentation" {% if tabindex=='1' %}class="active"{% endif %}><a
-                            href="{% if tabindex=='1' %}#log{% else %}{{ url_for('book_detail',bid=book.id,show=1,_anchor='log') }}{% endif %}"
+                            href="{% if tabindex=='1' %}#log{% else %}{{ url_for('book_detail',book_id=book.id,show=1,_anchor='log') }}{% endif %}"
                             role="tab">当前借阅信息</a></li>
                     <li role="presentation" {% if tabindex=='2' %}class="active"{% endif %}><a
-                            href="{% if tabindex=='2' %}#log{% else %}{{ url_for('book_detail',bid=book.id,show=2,_anchor='log') }}{% endif %}"
+                            href="{% if tabindex=='2' %}#log{% else %}{{ url_for('book_detail',book_id=book.id,show=2,_anchor='log') }}{% endif %}"
                             role="tab">历史借阅信息</a></li>
                 {% endwith %}
             </ul>
             <!-- Tab panes -->
             <div class="tab-content">
+
                 {% if (request.args.get('show') or '0')=='0' %}
 
-                    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-                        写书评
-                    </button>
-                    {% for comment in data %}
-                        <div class="media">
-                            {% if comment.user.avatar %}
-                                <div class="media-left">
-                                    <a href="{{ url_for('user_detail',uid=comment.user.id) }}">
-                                        <img class="media-object" src="{{ comment.user.avatar }}"
-                                             alt="{{ comment.user.name }}">
-                                    </a>
+                    <ul class="list-group">
+                        {%- if g.user.is_authenticated -%}
+                            <li class="list-group-item list-group-item">
+                                <div class="row">
+                                    <div class="col-md-4 col-md-offset-4">
+                                        <button type="button" class="btn btn-primary btn-block" data-toggle="modal"
+                                                data-target="#myModal">
+                                            我来评价这本书
+                                        </button>
+                                    </div>
                                 </div>
-                            {% endif %}
-                            <div class="media-body">
-                                <h4 class="media-heading">{{ comment.user.about_me or "" }}</h4>
-                                {{ comment.comment }}
-                            </div>
-                        </div>
-                    {% endfor %}
+                            </li>
+                        {% endif %}
+                        {% for comment in data %}
+                            <li class="list-group-item clearfix">
+                                <div class="media">
+                                    {% if comment.user.avatar_url() %}
+                                        <div class="media-left">
+                                            <a href="{{ url_for('user_detail',user_id=comment.user.id) }}">
+                                                <div class="media-object avatar avatar-small"
+                                                     style="background-image: url({{ comment.user.avatar_url() }})"></div>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                    <div class="media-body">
+                                        <p class="media-heading"><a
+                                                href="{{ url_for('user_detail',user_id=comment.user.id) }}">
+                                            {{ comment.user.name }}</a>
+                                            <small>{{ comment.user.headline or "" }}</small>
+                                        </p>
+                                        <p class="list-group-item-text">{{ comment.comment }}</p>
+                                        {% if comment.create_timestamp==comment.edit_timestamp %}
+                                            <h4>
+                                                <small>
+                                                    发布于: {{ comment.create_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</small>
+                                            </h4>
+                                        {% else %}
+                                            <h4>
+                                                <small>
+                                                    编辑于: {{ comment.edit_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</small>
+                                            </h4>
+                                        {% endif %}
+
+                                        {% if comment.user_id == g.user.id or g.user.admin %}
+                                            <a class="pull-right btn btn-danger btn-sm"
+                                               href="{{ url_for('delete_comment',comment_id=comment.id,next=request.url) }}">删除</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
                     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
                         <div class="modal-dialog">
                             <div class="modal-content">
@@ -158,20 +192,17 @@
                                             aria-hidden="true">&times;</span></button>
                                     <h4 class="modal-title">{{ g.user.name~' 对 '~book.title~' 的书评' }}</h4>
                                 </div>
-                                <form action="{{ url_for('book_comment',bid=book.id) }}" method="post" class="form"
+                                <form action="{{ url_for('add_comment',book_id=book.id) }}" method="post" class="form"
                                       role="form">
                                     {{ form.hidden_tag() }}
                                     <div class="modal-body">
-                                        <div class="form-group  required">
-                                            {{ form.comment.label(class_="control-label") }}
-                                            {{ form.comment(class_="form-control",required_="required") }}
-                                        </div>
+                                        {{ wtf.form_field(form.comment,placeholder="长度在1024字符以内(500字中文)") }}
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-default" data-dismiss="modal">关闭
                                         </button>
-                                        <input class="btn btn-primary" id="submit" name="submit" type="submit"
-                                               value="发布"></div>
+                                        {{ wtf.form_field(form.submit,button_map={'submit':'success'}) }}
+
                                 </form>
                             </div><!-- /.modal-content -->
                         </div><!-- /.modal-dialog -->
@@ -191,7 +222,8 @@
                             <tbody>
                             {% for log in data %}
                                 <tr>
-                                    <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a>
+                                    <td>
+                                        <a href="{{ url_for('user_detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                     </td>
                                     <td class="hidden-xs">{{ log.user.email }}</td>
                                     </td>
@@ -218,7 +250,8 @@
                             <tbody>
                             {% for log in data %}
                                 <tr>
-                                    <td><a href="{{ url_for('user_detail' ,uid=log.user.id) }}">{{ log.user.name }}</a>
+                                    <td>
+                                        <a href="{{ url_for('user_detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                     </td>
                                     <td class="hidden-xs">{{ log.user.email }}</td>
                                     </td>

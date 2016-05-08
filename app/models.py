@@ -34,8 +34,10 @@ class User(UserMixin, db.Model):
     password = db.deferred(db.Column(db.String(128)))
     major = db.Column(db.String(128))
     admin = db.Column(db.Boolean, default=0)
-
+    headline = db.Column(db.String(32), nullable=True)
     about_me = db.deferred(db.Column(db.Text, nullable=True))
+    about_me_html = db.deferred(db.Column(db.Text, nullable=True))
+    avatar = db.Column(db.String(128))
 
     logs = db.relationship('Log',
                            foreign_keys=[Log.user_id],
@@ -47,14 +49,6 @@ class User(UserMixin, db.Model):
                                backref=db.backref('user', lazy='joined'),
                                lazy='dynamic',
                                cascade='all, delete-orphan')
-
-    # def __init__(self, email, name, password, major=None, admin=False, description=None):
-    #     self.email = email
-    #     self.name = name
-    #     self.password = password
-    #     self.major = major
-    #     self.admin = admin
-    #     self.description = description
 
     def __repr__(self):
         return u'<User name=%r email=%r>' % (self.name, self.email)
@@ -85,8 +79,20 @@ class User(UserMixin, db.Model):
         else:
             return u'没有找到这条记录', 'danger'
 
-    def books_count(self):
-        return self.logs.count()
+    def avatar_url(self):
+        from flask import url_for
+        return self.avatar or url_for('static', filename='img/avatar.png')
+
+    @staticmethod
+    def on_changed_about_me(target, value, oldvalue, initiaor):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquate', 'code', 'em', 'i',
+                        'li', 'ol', 'pre', 'strong', 'ul', 'h1', 'h2', 'h3', 'p']
+        target.about_me_html = bleach.linkify(
+            bleach.clean(markdown(value, output_format='html'),
+                         tags=allowed_tags, strip=True))
+
+
+db.event.listen(User.about_me, 'set', User.on_changed_about_me)
 
 
 class Book(db.Model):
@@ -175,5 +181,5 @@ class Comment(db.Model):
         self.book = book
         self.comment = comment
         self.create_timestamp = datetime.now()
-        self.edit_timestamp = datetime.now()
+        self.edit_timestamp = self.create_timestamp
         self.deleted = 0

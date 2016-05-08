@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField, FileField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField, RadioField
 from wtforms import ValidationError
-from wtforms.validators import Email, Length, DataRequired, EqualTo, Regexp
+from wtforms.validators import Email, Length, DataRequired, EqualTo, Regexp, URL
 from .models import User
 from flask.ext.pagedown.fields import PageDownField
+from flask.ext.wtf.file import FileField, FileAllowed
+from app import avatars
 
 
 class LoginForm(Form):
@@ -34,7 +36,8 @@ class RegistrationForm(Form):
 class EditProfileForm(Form):
     name = StringField(u'用户名', validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 64, message=u"长度为1到64个字符")])
     major = StringField(u'主修专业', validators=[Length(0, 128, message=u"长度为0到128个字符")])
-    about_me = TextAreaField(u"用户自我简介")
+    headline = StringField(u'一句话介绍自己', validators=[Length(0, 32, message=u"长度为32个字符以内")])
+    about_me = PageDownField(u"个人简介")
     submit = SubmitField(u"保存更改")
 
 
@@ -75,10 +78,20 @@ class ChangePasswordForm(Form):
 
 
 class SearchForm(Form):
-    search = StringField(u"搜索书籍", validators=[DataRequired()])
+    search = StringField(validators=[DataRequired()])
+    submit = SubmitField(u"搜索")
 
 
 class CommentForm(Form):
     comment = TextAreaField(u"你的书评",
                             validators=[DataRequired(message=u"内容不能为空"), Length(1, 1024, message=u"书评长度限制在1024字符以内")])
     submit = SubmitField(u"发布")
+
+
+class AvatarEditForm(Form):
+    avatar_url = StringField('', validators=[Length(0, 128, message=u"长度限制在128字符以内"), URL(message=u"请填写正确的URL")])
+    submit = SubmitField(u"保存")
+
+
+class AvatarUploadForm(Form):
+    avatar = FileField('', validators=[FileAllowed(avatars, message=u"只允许上传图片")])
