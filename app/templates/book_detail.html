@@ -108,6 +108,13 @@
             {%- if g.user.admin -%}
                 <a type="button" class="btn btn-warning" href="{{ url_for('book_edit',book_id=book.id) }}">编辑书籍信息
                 </a>
+                {% if book.hidden %}
+                    <a type="button" class="btn btn-info"
+                       href="{{ url_for('book_put_back',book_id=book.id) }}">还原书籍</a>
+                {% else %}
+                    <a type="button" class="btn btn-danger"
+                       href="{{ url_for('book_delete',book_id=book.id) }}">删除书籍</a>
+                {% endif %}
             {%- endif -%}
         </div>
     </div>

@@ -30,7 +30,7 @@
         </thead>
         <tbody>
         {%- for book in books -%}
-            <tr>
+            <tr {% if book.hidden %}class="danger" {% endif %}>
                 <td><a href="{{ url_for('book_detail',book_id=book.id) }}">{{ book.title }}</a>
                     <p class="visible-xs-block">{{ book.author }}</p>
                     <p class="visible-xs-block">馆藏/可借: {{ book.numbers }} / {{ book.can_borrow_number() }}</p>
@@ -39,20 +39,27 @@
                 <td class="hidden-xs">{{ book.isbn }}</td>
                 <td class="hidden-xs">{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
                 {%- if g.user.is_authenticated -%}
-                    {% with log=g.user.borrowing(book) %}
-                        {%- if log -%}
-                            <td><a class="btn btn-primary"
-                                   href="{{ url_for('book_return',lid=log.id,next=request.full_path) }}">
-                                归还
-                            </a></td>
-                        {%- else -%}
-                            <td><a class="btn btn-success"
+                    <td>
+                        {% with borrowing_log=g.user.borrowing(book) %}
+                            {%- if borrowing_log -%}
+                                <a class="btn btn-primary"
+                                   href="{{ url_for('book_return',lid=borrowing_log.id,next=request.full_path) }}">归还</a>
+                            {%- else -%}
+                                <a class="btn btn-success"
                                    href="{{ url_for('book_borrow',book_id=book.id,next=request.full_path) }}"
-                                    {%- if not book.can_borrow() %} disabled="disabled"{%- endif -%}>
-                                借阅
-                            </a></td>
+                                        {%- if not book.can_borrow() %} disabled="disabled"{%- endif -%}>借阅</a>
+                            {%- endif -%}
+                        {% endwith %}
+                        {%- if g.user.admin -%}
+                            {% if book.hidden %}
+                                <a type="button" class="btn btn-info"
+                                   href="{{ url_for('book_put_back',book_id=book.id,next=request.full_path) }}">还原书籍</a>
+                            {% else %}
+                                <a type="button" class="btn btn-danger"
+                                   href="{{ url_for('book_delete',book_id=book.id,next=request.full_path) }}">删除书籍</a>
+                            {% endif %}
                         {%- endif -%}
-                    {% endwith %}
+                    </td>
                 {%- endif -%}
             </tr>
         {%- endfor -%}

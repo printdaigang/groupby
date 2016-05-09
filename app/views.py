@@ -52,6 +52,9 @@ def book():
     else:
         books = Book.query.order_by(Book.id.desc())
 
+    if not current_user.is_authenticated or not current_user.admin:
+        books = books.filter_by(hidden=0)
+
     pagination = books.paginate(page, per_page=8)
     result_books = pagination.items
     return render_template("book.html", books=result_books, pagination=pagination, search_form=search_form,
@@ -63,6 +66,9 @@ def book_detail(book_id):
     the_book = Book.query.get_or_404(book_id)
     # borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=0).all())
     # borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=1).all())
+
+    if the_book.hidden and (not current_user.is_authenticated or not current_user.admin):
+        abort(404)
 
     show = request.args.get('show', 0, type=int)
     page = request.args.get('page', 1, type=int)
@@ -160,6 +166,9 @@ def book_add():
 @login_required
 def book_borrow(book_id):
     the_book = Book.query.get_or_404(book_id)
+    if the_book.hidden and not current_user.admin:
+        abort(404)
+
     flash(*current_user.borrow_book(the_book))
     db.session.commit()
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
@@ -177,14 +186,41 @@ def book_return(lid):
 @login_required
 def add_comment(book_id):
     form = CommentForm()
+    the_book = Book.query.get_or_404(book_id)
+    if the_book.hidden and not current_user.admin:
+        abort(404)
+
     if form.validate_on_submit():
-        comment = Comment(user=current_user, book=Book.query.get_or_404(book_id), comment=form.comment.data)
+        comment = Comment(user=current_user, book=the_book, comment=form.comment.data)
         db.session.add(comment)
         db.session.commit()
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
+@app.route('/book/<int:book_id>/delete/')
+@admin_required
+def book_delete(book_id):
+    the_book = Book.query.get_or_404(book_id)
+    the_book.hidden = 1
+    db.session.add(the_book)
+    db.session.commit()
+    flash(u'成功删除书籍,用户已经无法查看该书籍', 'info')
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
+
+
+@app.route('/book/<int:book_id>/put_back/')
+@admin_required
+def book_put_back(book_id):
+    the_book = Book.query.get_or_404(book_id)
+    the_book.hidden = 0
+    db.session.add(the_book)
+    db.session.commit()
+    flash(u'成功恢复书籍,用户现在可以查看该书籍', 'info')
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
+
+
 @app.route('/user/')
+@login_required
 def user():
     page = request.args.get('page', 1, type=int)
     pagination = User.query.order_by(User.id.desc()).paginate(page, per_page=10)
@@ -265,6 +301,7 @@ def avatar_edit(user_id):
 
 
 @app.route('/card/')
+@login_required
 def card():
     show = request.args.get('show', 0, type=int)
     if show != 0:

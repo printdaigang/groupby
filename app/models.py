@@ -116,6 +116,7 @@ class Book(db.Model):
     summary_html = db.deferred(db.Column(db.Text))
     catalog = db.deferred(db.Column(db.Text, default=""))
     catalog_html = db.deferred(db.Column(db.Text))
+    hidden = db.Column(db.Boolean)
 
     logs = db.relationship('Log',
                            foreign_keys=[Log.book_id],

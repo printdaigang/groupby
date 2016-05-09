@@ -80,7 +80,7 @@ html, body, main {
     font-size: 1.5rem !important;
 }
 
-.panel-body[class^='flask-pagedown-'] {
+#accordion .panel-body, [class^="flask-pagedown"] {
     max-height: 50rem;
     overflow-y: scroll;
 }
@@ -161,7 +161,7 @@ html, body, main {
         max-width: 200px;
     }
 
-    .panel-body[class^="flask-pagedown-"] {
+    #accordion .panel-body, [class^="flask-pagedown"] {
         max-height: 25rem;
         overflow-y: scroll;
     }
