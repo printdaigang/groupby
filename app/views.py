@@ -3,8 +3,8 @@ from flask import render_template, redirect, request, url_for, flash, g, abort
 from app import app, lm, db, avatars
 from .models import User, Book, Log, Comment
 from flask.ext.login import current_user, login_required, login_user, logout_user
-from .forms import LoginForm, RegistrationForm, EditProfileForm, EditBookForm, ChangePasswordForm, SearchForm, \
-    CommentForm, AvatarEditForm, AvatarUploadForm
+from .forms import LoginForm, RegistrationForm, EditProfileForm, AddBookForm, EditBookForm, ChangePasswordForm, \
+    SearchForm, CommentForm, AvatarEditForm, AvatarUploadForm
 from functools import wraps
 
 
@@ -135,7 +135,7 @@ def book_edit(book_id):
 @app.route('/book/add/', methods=['GET', 'POST'])
 @admin_required
 def book_add():
-    form = EditBookForm()
+    form = AddBookForm()
     form.numbers.data = 3
     if form.validate_on_submit():
         new_book = Book(
@@ -194,6 +194,7 @@ def add_comment(book_id):
         comment = Comment(user=current_user, book=the_book, comment=form.comment.data)
         db.session.add(comment)
         db.session.commit()
+        flash(u'书评已成功发布', 'success')
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 

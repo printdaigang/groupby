@@ -34,6 +34,9 @@
                 {%- if book.tags -%}
                     <li class="list-group-item">标签: {{ book.tags }}</li>
                 {%- endif -%}
+                {%- if book.pages -%}
+                    <li class="list-group-item">页数: {{ book.pages }}</li>
+                {%- endif -%}
                 {%- if book.price -%}
                     <li class="list-group-item">定价: {{ book.price }}</li>
                 {%- endif -%}

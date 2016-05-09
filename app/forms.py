@@ -3,10 +3,10 @@ from flask.ext.wtf import Form
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField, RadioField
 from wtforms import ValidationError
 from wtforms.validators import Email, Length, DataRequired, EqualTo, Regexp, URL
-from .models import User
+from .models import User, Book
 from flask.ext.pagedown.fields import PageDownField
 from flask.ext.wtf.file import FileField, FileAllowed
-from app import avatars
+from app import avatars, db
 
 
 class LoginForm(Form):
@@ -28,7 +28,6 @@ class RegistrationForm(Form):
     submit = SubmitField(u'注册')
 
     def validate_email(self, filed):
-        from app import db
         if User.query.filter(db.func.lower(User.email) == db.func.lower(filed.data)).first():
             raise ValidationError(u'该 Email 已经被注册了')
 
@@ -43,8 +42,10 @@ class EditProfileForm(Form):
 
 class EditBookForm(Form):
     isbn = StringField(u"ISBN",
-                       validators=[DataRequired(message=u"该项忘了填写了!"), Regexp('[0-9]{13,13}', message=u"ISBN必须是13位数字")])
-    title = StringField(u"书名", validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 128, message=u"长度为1到128个字符")])
+                       validators=[DataRequired(message=u"该项忘了填写了!"),
+                                   Regexp('[0-9]{13,13}', message=u"ISBN必须是13位数字")])
+    title = StringField(u"书名",
+                        validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 128, message=u"长度为1到128个字符")])
     origin_title = StringField(u"原作名", validators=[Length(0, 128, message=u"长度为0到128个字符")])
     subtitle = StringField(u"副标题", validators=[Length(0, 128, message=u"长度为0到128个字符")])
     author = StringField(u"作者", validators=[Length(0, 128, message=u"长度为0到64个字符")])
@@ -61,6 +62,12 @@ class EditBookForm(Form):
     summary = PageDownField(u"内容简介")
     catalog = PageDownField(u"目录")
     submit = SubmitField(u"保存更改")
+
+
+class AddBookForm(EditBookForm):
+    def validate_isbn(self, filed):
+        if Book.query.filter_by(isbn=filed.data).count():
+            raise ValidationError(u'已经存在相同的ISBN,无法录入,请仔细核对是否已库存该书籍.')
 
 
 class ChangePasswordForm(Form):
