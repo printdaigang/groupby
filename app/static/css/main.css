@@ -96,22 +96,7 @@ html, body, main {
 
 .primary-info > img {
     max-height: 400px;
-}
-
-@media screen and (max-width: 768px) {
-    .primary-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .primary-info > img {
-        max-width: 200px;
-    }
-
-    .panel-body[class^="flask-pagedown-"] {
-        max-height: 25rem;
-        overflow-y: scroll;
-    }
+    margin: 10px;
 }
 
 .avatar {
@@ -164,4 +149,39 @@ html, body, main {
 
 .avatar-large:hover {
     transform: rotate(360deg);
+}
+
+@media screen and (max-width: 768px) {
+    .primary-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .primary-info > img {
+        max-width: 200px;
+    }
+
+    .panel-body[class^="flask-pagedown-"] {
+        max-height: 25rem;
+        overflow-y: scroll;
+    }
+
+    .avatar-large {
+        width: 60vw;
+        height: 60vw;
+        border-radius: 30vw;
+        -webkit-border-radius: 30vw;
+        -moz-border-radius: 30vw;
+        margin: 10vw;
+    }
+
+    .avatar-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 25px;
+        -webkit-border-radius: 25px;
+        -moz-border-radius: 25px;
+        margin: 1px;
+    }
+
 }

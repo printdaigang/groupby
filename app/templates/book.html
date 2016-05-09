@@ -20,9 +20,9 @@
         <thead>
         <tr>
             <th>书名</th>
-            <th>作者</th>
+            <th class="hidden-xs">作者</th>
             <th class="hidden-xs">ISBN</th>
-            <th>馆藏 / 可借</th>
+            <th class="hidden-xs">馆藏 / 可借</th>
             {%- if g.user.is_authenticated -%}
                 <th>操作</th>
             {%- endif -%}
@@ -31,10 +31,13 @@
         <tbody>
         {%- for book in books -%}
             <tr>
-                <td><a href="{{ url_for('book_detail',book_id=book.id) }}">{{ book.title }}</a></td>
-                <td>{{ book.author }}</td>
+                <td><a href="{{ url_for('book_detail',book_id=book.id) }}">{{ book.title }}</a>
+                    <p class="visible-xs-block">{{ book.author }}</p>
+                    <p class="visible-xs-block">馆藏/可借: {{ book.numbers }} / {{ book.can_borrow_number() }}</p>
+                </td>
+                <td class="hidden-xs">{{ book.author }}</td>
                 <td class="hidden-xs">{{ book.isbn }}</td>
-                <td>{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
+                <td class="hidden-xs">{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
                 {%- if g.user.is_authenticated -%}
                     {% with log=g.user.borrowing(book) %}
                         {%- if log -%}
