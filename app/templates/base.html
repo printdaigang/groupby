@@ -35,15 +35,15 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li {%- if request.path == url_for('book') %} class="active"{%- endif -%} ><a
-                            href="{{ url_for('book') }}">书籍清单</a></li>
+                    <li {%- if request.path == url_for('books') %} class="active"{%- endif -%} ><a
+                            href="{{ url_for('books') }}">书籍清单</a></li>
                     {%- if g.user.admin -%}
                         <li {%- if request.path == url_for('book_add') %} class="active"{%- endif -%} ><a
                                 href="{{ url_for('book_add') }}">添加新书</a></li>
                     {%- endif -%}
                     {%- if g.user.is_authenticated -%}
-                        <li {%- if request.path == url_for('user') %} class="active"{%- endif -%} ><a
-                                href="{{ url_for('user') }}">已注册用户</a></li>
+                        <li {%- if request.path == url_for('users') %} class="active"{%- endif -%} ><a
+                                href="{{ url_for('users') }}">已注册用户</a></li>
                         <li {%- if request.path == url_for('card') %} class="active"{%- endif -%} ><a
                                 href="{{ url_for('card') }}">借阅信息</a></li>
                     {% endif %}

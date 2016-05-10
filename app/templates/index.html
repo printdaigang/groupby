@@ -2,7 +2,7 @@
 {% block mycontent %}
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
-            <form class="form form-horizontal" method="get" action="{{ url_for('book') }}">
+            <form class="form form-horizontal" method="get" action="{{ url_for('books') }}">
                 <div class="input-group  input-group-lg">
                     {{ search_form.search(placeholder="输入书籍名称,按 <return> 搜索",class_="form-control") }}
                 <span class="input-group-btn">
@@ -39,7 +39,7 @@
                     {% with log =g.user.borrowing(book) %}
                         {% if log %}
                             <td><a class="btn btn-primary"
-                                   href="{{ url_for('book_return',lid=log.id,next=request.path) }}">
+                                   href="{{ url_for('book_return',log_id=log.id,next=request.path) }}">
                                 归还
                             </a></td>
                         {% else %}

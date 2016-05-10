@@ -39,8 +39,8 @@ def index():
                            search_form=search_form)
 
 
-@app.route('/book/')
-def book():
+@app.route('/books/')
+def books():
     searchword = request.args.get('search', None)
     search_form = SearchForm()
     page = request.args.get('page', 1, type=int)
@@ -61,7 +61,7 @@ def book():
                            title=u"书籍清单")
 
 
-@app.route('/book/<book_id>/')
+@app.route('/books/<book_id>/')
 def book_detail(book_id):
     the_book = Book.query.get_or_404(book_id)
     # borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=0).all())
@@ -87,7 +87,7 @@ def book_detail(book_id):
                            title=the_book.title)
 
 
-@app.route('/book/<int:book_id>/edit/', methods=['GET', 'POST'])
+@app.route('/books/<int:book_id>/edit/', methods=['GET', 'POST'])
 @admin_required
 def book_edit(book_id):
     book = Book.query.get_or_404(book_id)
@@ -132,7 +132,7 @@ def book_edit(book_id):
     return render_template("book_edit.html", form=form, book=book, title=u"编辑书籍资料")
 
 
-@app.route('/book/add/', methods=['GET', 'POST'])
+@app.route('/books/add/', methods=['GET', 'POST'])
 @admin_required
 def book_add():
     form = AddBookForm()
@@ -162,7 +162,7 @@ def book_add():
     return render_template("book_edit.html", form=form, title=u"添加新书")
 
 
-@app.route('/book/<int:book_id>/borrow/')
+@app.route('/books/<int:book_id>/borrow/')
 @login_required
 def book_borrow(book_id):
     the_book = Book.query.get_or_404(book_id)
@@ -174,15 +174,15 @@ def book_borrow(book_id):
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
-@app.route('/book/return/<lid>/')
+@app.route('/books/return/<log_id>/')
 @login_required
-def book_return(lid):
-    flash(*current_user.return_book(lid))
+def book_return(log_id):
+    flash(*current_user.return_book(log_id))
     db.session.commit()
-    return redirect(request.args.get('next') or url_for('book_detail', book_id=lid))
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=log_id))
 
 
-@app.route('/book/<int:book_id>/comment/', methods=['POST', ])
+@app.route('/books/<int:book_id>/comment/', methods=['POST', ])
 @login_required
 def add_comment(book_id):
     form = CommentForm()
@@ -198,7 +198,7 @@ def add_comment(book_id):
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
-@app.route('/book/<int:book_id>/delete/')
+@app.route('/books/<int:book_id>/delete/')
 @admin_required
 def book_delete(book_id):
     the_book = Book.query.get_or_404(book_id)
@@ -209,7 +209,7 @@ def book_delete(book_id):
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
-@app.route('/book/<int:book_id>/put_back/')
+@app.route('/books/<int:book_id>/put_back/')
 @admin_required
 def book_put_back(book_id):
     the_book = Book.query.get_or_404(book_id)
@@ -220,16 +220,16 @@ def book_put_back(book_id):
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
-@app.route('/user/')
+@app.route('/users/')
 @login_required
-def user():
+def users():
     page = request.args.get('page', 1, type=int)
     pagination = User.query.order_by(User.id.desc()).paginate(page, per_page=10)
     users = pagination.items
     return render_template("user.html", users=users, pagination=pagination, title=u"已注册用户")
 
 
-@app.route('/user/<int:user_id>/')
+@app.route('/users/<int:user_id>/')
 def user_detail(user_id):
     the_user = User.query.get_or_404(user_id)
     # borrowing_data = Log.query.filter_by(user_id=user_id, returned=0).all()
@@ -241,14 +241,14 @@ def user_detail(user_id):
 
     page = request.args.get('page', 1, type=int)
     pagination = the_user.logs.filter_by(returned=show) \
-        .order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=10)
+        .order_by(Log.borrow_timestamp.desc()).paginate(page, per_page=5)
     logs = pagination.items
 
     return render_template("user_detail.html", user=the_user, logs=logs, pagination=pagination,
                            title=u"用户: " + the_user.name)
 
 
-@app.route('/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@app.route('/users/<int:user_id>/edit/', methods=['GET', 'POST'])
 @login_required
 def edit_profile(user_id):
     if current_user.id == user_id or current_user.admin:
@@ -273,7 +273,7 @@ def edit_profile(user_id):
         abort(403)
 
 
-@app.route('/user/<int:user_id>/avatar_edit', methods=['GET', 'POST'])
+@app.route('/users/<int:user_id>/avatar_edit/', methods=['GET', 'POST'])
 @login_required
 def avatar_edit(user_id):
     if current_user.id == user_id or current_user.admin:

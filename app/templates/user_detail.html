@@ -94,7 +94,7 @@
                             <td class="hidden-xs">{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                             {%- if g.user.is_authenticated and g.user.id==user.id -%}
                                 <td><a class="btn btn-primary"
-                                       href="{{ url_for('book_return',lid=log.id,next=request.path) }}">
+                                       href="{{ url_for('book_return',log_id=log.id,next=request.path) }}">
                                     归还</a></td>
                             {%- endif -%}
                         </tr>
@@ -131,7 +131,7 @@
                 </table>
                 </div>
             {% endif %}
-        {% if pagination and pagination.page>1 %}
+        {% if pagination and pagination.pages>1 %}
             <div class="container-fluid text-center">
                 {{ render_pagination(pagination) }}
             </div>

@@ -43,7 +43,7 @@
                         {% with borrowing_log=g.user.borrowing(book) %}
                             {%- if borrowing_log -%}
                                 <a class="btn btn-primary"
-                                   href="{{ url_for('book_return',lid=borrowing_log.id,next=request.full_path) }}">归还</a>
+                                   href="{{ url_for('book_return',log_id=borrowing_log.id,next=request.full_path) }}">归还</a>
                             {%- else -%}
                                 <a class="btn btn-success"
                                    href="{{ url_for('book_borrow',book_id=book.id,next=request.full_path) }}"
