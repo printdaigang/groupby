@@ -162,10 +162,11 @@ def book_add():
     return render_template("book_edit.html", form=form, title=u"添加新书")
 
 
-@app.route('/books/<int:book_id>/borrow/')
+@app.route('/logs_info/borrow/')
 @login_required
-def book_borrow(book_id):
-    the_book = Book.query.get_or_404(book_id)
+def book_borrow():
+    book_id = request.args.get('book_id')
+    the_book = Book.query.get(book_id)
     if the_book.hidden and not current_user.admin:
         abort(404)
 
@@ -174,28 +175,22 @@ def book_borrow(book_id):
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
 
-@app.route('/books/return/<log_id>/')
+@app.route('/logs_info/return/')
 @login_required
-def book_return(log_id):
-    flash(*current_user.return_book(log_id))
-    db.session.commit()
-    return redirect(request.args.get('next') or url_for('book_detail', book_id=log_id))
-
-
-@app.route('/books/<int:book_id>/comment/', methods=['POST', ])
-@login_required
-def add_comment(book_id):
-    form = CommentForm()
-    the_book = Book.query.get_or_404(book_id)
-    if the_book.hidden and not current_user.admin:
-        abort(404)
-
-    if form.validate_on_submit():
-        comment = Comment(user=current_user, book=the_book, comment=form.comment.data)
-        db.session.add(comment)
+def book_return():
+    log_id = request.args.get('log_id')
+    book_id = request.args.get('book_id')
+    log = None
+    if log_id:
+        log = Log.query.get(log_id)
+    if book_id:
+        log = Log.query.filter_by(user_id=current_user.id, book_id=book_id, returned=0)
+    if log is None:
+        flash(u'没有找到这条记录')
+    else:
+        flash(*current_user.return_book(log))
         db.session.commit()
-        flash(u'书评已成功发布', 'success')
-    return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=log_id))
 
 
 @app.route('/books/<int:book_id>/delete/')
@@ -301,9 +296,9 @@ def avatar_edit(user_id):
         abort(403)
 
 
-@app.route('/card/')
+@app.route('/logs_info/')
 @login_required
-def card():
+def logs_info():
     show = request.args.get('show', 0, type=int)
     if show != 0:
         show = 1
@@ -363,7 +358,23 @@ def change_password():
     return render_template('user_edit.html', form=form, user=current_user, title=u"修改密码")
 
 
-@app.route('/commnet/delete/<int:comment_id>')
+@app.route('/comments/add/<int:book_id>/', methods=['POST', ])
+@login_required
+def add_comment(book_id):
+    form = CommentForm()
+    the_book = Book.query.get_or_404(book_id)
+    if the_book.hidden and not current_user.admin:
+        abort(404)
+
+    if form.validate_on_submit():
+        comment = Comment(user=current_user, book=the_book, comment=form.comment.data)
+        db.session.add(comment)
+        db.session.commit()
+        flash(u'书评已成功发布', 'success')
+    return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
+
+
+@app.route('/commnets/delete/<int:comment_id>')
 @login_required
 def delete_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)

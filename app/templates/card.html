@@ -5,9 +5,9 @@
     <ul class="nav nav-tabs" role="tablist">
         {% if request.args.get('show',0)!='1' %}
             <li role="presentation" class="active"><a href="#" role="tab">当前借阅记录</a></li>
-            <li role="presentation"><a href="{{ url_for('card',show=1) }}" role="tab">历史借阅记录</a></li>
+            <li role="presentation"><a href="{{ url_for('logs_info',show=1) }}" role="tab">历史借阅记录</a></li>
         {% else %}
-            <li role="presentation"><a href="{{ url_for('card',show=0) }}" role="tab">当前借阅记录</a></li>
+            <li role="presentation"><a href="{{ url_for('logs_info',show=0) }}" role="tab">当前借阅记录</a></li>
             <li role="presentation" class="active"><a href="#" role="tab">历史借阅记录</a></li>
         {% endif %}
     </ul>

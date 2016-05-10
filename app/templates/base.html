@@ -44,8 +44,8 @@
                     {%- if g.user.is_authenticated -%}
                         <li {%- if request.path == url_for('users') %} class="active"{%- endif -%} ><a
                                 href="{{ url_for('users') }}">已注册用户</a></li>
-                        <li {%- if request.path == url_for('card') %} class="active"{%- endif -%} ><a
-                                href="{{ url_for('card') }}">借阅信息</a></li>
+                        <li {%- if request.path == url_for('logs_info') %} class="active"{%- endif -%} ><a
+                                href="{{ url_for('logs_info') }}">借阅信息</a></li>
                     {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">

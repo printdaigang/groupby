@@ -67,17 +67,13 @@ class User(UserMixin, db.Model):
         db.session.add(Log(self, book))
         return u'你成功GET到了一本 %s' % book.title, 'success'
 
-    def return_book(self, lid):
-        log = Log.query.get(lid)
-        if log:
-            if log.returned == 1 or log.user_id != self.id:
-                return u'没有找到这条记录', 'danger'
-            log.returned = 1
-            log.return_timestamp = datetime.now()
-            db.session.add(log)
-            return u'你归还了一本 %s' % log.book.title, 'success'
-        else:
+    def return_book(self, log):
+        if log.returned == 1 or log.user_id != self.id:
             return u'没有找到这条记录', 'danger'
+        log.returned = 1
+        log.return_timestamp = datetime.now()
+        db.session.add(log)
+        return u'你归还了一本 %s' % log.book.title, 'success'
 
     def avatar_url(self):
         from flask import url_for
