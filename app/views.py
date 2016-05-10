@@ -41,21 +41,24 @@ def index():
 
 @app.route('/books/')
 def books():
-    searchword = request.args.get('search', None)
+    search_word = request.args.get('search', None)
     search_form = SearchForm()
     page = request.args.get('page', 1, type=int)
 
-    if searchword:
-        searchword = searchword.strip()
-        books = Book.query.filter(Book.title.ilike(u"%%%s%%" % searchword)).order_by(Book.id.desc())
-        search_form.search.data = searchword
-    else:
-        books = Book.query.order_by(Book.id.desc())
-
     if not current_user.is_authenticated or not current_user.admin:
-        books = books.filter_by(hidden=0)
+        the_books = Book.query.filter_by(hidden=0)
 
-    pagination = books.paginate(page, per_page=8)
+    if search_word:
+        search_word = search_word.strip()
+        the_books = the_books.filter(db.or_(
+            Book.title.ilike(u"%%%s%%" % search_word), Book.author.ilike(u"%%%s%%" % search_word), Book.isbn.ilike(
+                u"%%%s%%" % search_word), Book.tags.ilike(u"%%%s%%" % search_word), Book.subtitle.ilike(
+                u"%%%s%%" % search_word))).outerjoin(Log).group_by(Book.id).order_by(db.func.count(Log.id).desc())
+        search_form.search.data = search_word
+    else:
+        the_books = Book.query.order_by(Book.id.desc())
+
+    pagination = the_books.paginate(page, per_page=8)
     result_books = pagination.items
     return render_template("book.html", books=result_books, pagination=pagination, search_form=search_form,
                            title=u"书籍清单")
@@ -166,7 +169,7 @@ def book_add():
 @login_required
 def book_borrow():
     book_id = request.args.get('book_id')
-    the_book = Book.query.get(book_id)
+    the_book = Book.query.get_or_404(book_id)
     if the_book.hidden and not current_user.admin:
         abort(404)
 
@@ -394,11 +397,3 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
-@app.errorhandler(413)
-def request_entity_too_large(e):
-    return 'Request Entity Too Large', 413
-
-
-@app.errorhandler(415)
-def UploadNotAllowed(e):
-    return 'Upload Not Allowed', 415
