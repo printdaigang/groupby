@@ -1,15 +1,33 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
+{% block styles %}
+    {{ super() }}
+    <style>
+        main {
+            display: flex;
+            align-items: center;
+            min-height: 24em;
+            justify-content: center;
+            background-color: gray;
+        }
+
+        .center-flex {
+            flex: 1;
+        }
+    </style>
+{% endblock %}
 {% block mycontent %}
-    <div class="col-md-6 col-md-offset-3">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <header class="panel-title">
-                    用户注册
-                </header>
-            </div>
-            <div class="panel-body">
-                {{ wtf.quick_form(form,button_map={'submit':'success'}) }}
+    <div class="row center-flex">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <header class="panel-title">
+                        用户注册
+                    </header>
+                </div>
+                <div class="panel-body">
+                    {{ wtf.quick_form(form,button_map={'submit':'success'}) }}
+                </div>
             </div>
         </div>
     </div>
