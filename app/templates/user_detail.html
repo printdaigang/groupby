@@ -4,7 +4,7 @@
     <div class="jumbotron">
         <div class="row">
             {%- if user.avatar_url() -%}
-                <div class="col-md-3">
+                <div class="col-md-3 animated bounceIn">
                     {%- if g.user.id == user.id or g.user.admin -%}
                         <a href="{{ url_for('avatar_edit',user_id=user.id) }}">
                             <div class="avatar avatar-large"
@@ -16,7 +16,7 @@
                     {%- endif -%}
                 </div>
             {%- endif -%}
-            <div class="col-md-6 col-md-offset-1">
+            <div class="col-md-6 col-md-offset-1 animated fadeIn">
                 <h1 class="page-header">{{ user.name }}
                     {% if user.headline %}
                         <small>{{ user.headline }}</small>
@@ -81,7 +81,7 @@
                     </thead>
                     <tbody>
                     {% for log in logs %}
-                        <tr>
+                        <tr class="animated fadeIn delay-{{ loop.index0 }}">
                             <td><a href="{{ url_for('book_detail',book_id=log.book.id) }}">{{ log.book.title }}</a>
                                 <p class="visible-xs-block">借阅日期:<span
                                         class="line-wrap">{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</span>
@@ -112,7 +112,7 @@
                     </thead>
                     <tbody>
                     {% for log in logs %}
-                        <tr>
+                        <tr class="animated fadeIn delay-{{ loop.index0 }}">
                             <td><a href="{{ url_for('book_detail',book_id=log.book.id) }}">{{ log.book.title }}</a>
                                 <p class="visible-xs-block">
                                     借阅日期:<span

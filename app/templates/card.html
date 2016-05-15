@@ -29,7 +29,7 @@
                 </thead>
                 <tbody>
                 {% for log in logs %}
-                    <tr>
+                    <tr class="animated fadeIn delay-{{ loop.index0 }}">
                         <td><a href="{{ url_for('user_detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                             <a class="visible-xs-block"
                                href="{{ url_for('book_detail',book_id=log.book.id) }}">{{ log.book.title }}</a>
@@ -83,7 +83,7 @@
                 </thead>
                 <tbody>
                 {% for log in logs %}
-                    <tr>
+                    <tr class="animated fadeIn delay-{{ loop.index0 }}">
                         <td><a href="{{ url_for('user_detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                             <a class="visible-xs-block"
                                href="{{ url_for('book_detail',book_id=log.book.id) }}">{{ log.book.title }}</a>
