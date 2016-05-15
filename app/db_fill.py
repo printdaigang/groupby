@@ -7,7 +7,7 @@ from models import User, Book, Log
 
 admin = User(name=u'root', email='root@gmail.com', password='password', major='administrator', admin=True,
              headline=u"临时管理员一枚", about_me=u"毕业于管理系,爱好读书,因此兼职图书馆管理员.")
-user1 = User(name=u'胡凡', email='hufan.akarin@Gmail.com', password='123456', major='Computer Science', headline=u"普通的学生")
+user1 = User(name=u'阿卡林', email='akarin@Gmail.com', password='123456', major='Computer Science', headline=u"普通的学生")
 user2 = User(name=u'test', email='test@test.com', password='123456')
 user3 = User(name=u'小明', email='xiaoming@163.com', password='123456')
 user4 = User(name=u'李华', email='lihua@yahoo.com', password='123456')
