@@ -79,8 +79,8 @@ class ChangePasswordForm(Form):
     submit = SubmitField(u"保存密码")
 
     def validate_old_password(self, filed):
-        from app.views import current_user
-        if current_user.password != filed.data:
+        from flask.ext.login import current_user
+        if not current_user.verify_password(filed.data):
             raise ValidationError(u'原密码错误')
 
 
