@@ -30,7 +30,6 @@ def create_app():
     for blueprint in [main,auth, user, book, comment, log]:
         app.register_blueprint(blueprint)
 
-    print app.url_map
     return app
 
 
