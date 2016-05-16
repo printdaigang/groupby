@@ -25,7 +25,7 @@
                         {{ wtf.form_field(form.password) }}
                         {{ wtf.form_field(form.remember_me) }}
                         <input class="btn btn-success" id="submit" name="submit" type="submit" value="登入">
-                        <a href="{{ url_for('register') }}" class="btn btn-info pull-right">新用户?点击这里注册</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-info pull-right">新用户?点击这里注册</a>
                     </form>
                     <br>
                 </div>
