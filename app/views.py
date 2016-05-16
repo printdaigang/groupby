@@ -316,8 +316,8 @@ def logs_info():
 def login():
     login_form = LoginForm()
     if login_form.validate_on_submit():
-        the_user = User.query.filter(db.func.lower(User.email) == db.func.lower(login_form.email.data)).first()
-        if the_user is not None and the_user.password == login_form.password.data:
+        the_user = User.query.filter(User.email.ilike(login_form.email.data)).first()
+        if the_user is not None and the_user.verify_password(login_form.password.data):
             login_user(the_user, login_form.remember_me.data)
             flash(u'登录成功!  欢迎您 %s!' % the_user.name, 'success')
             return redirect(request.args.get('next') or url_for('index'))
@@ -395,5 +395,3 @@ def delete_comment(comment_id):
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
-
-

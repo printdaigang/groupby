@@ -4,6 +4,7 @@ from flask.ext.login import UserMixin
 from datetime import datetime, timedelta
 import bleach
 from markdown import markdown
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Log(db.Model):
@@ -31,13 +32,24 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True)
     name = db.Column(db.String(64))
-    password = db.deferred(db.Column(db.String(128)))
+    password_hash = db.deferred(db.Column(db.String(128)))
     major = db.Column(db.String(128))
     admin = db.Column(db.Boolean, default=0)
     headline = db.Column(db.String(32), nullable=True)
     about_me = db.deferred(db.Column(db.Text, nullable=True))
     about_me_html = db.deferred(db.Column(db.Text, nullable=True))
     avatar = db.Column(db.String(128))
+
+    @property
+    def password(self):
+        raise AttributeError('password is not readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     logs = db.relationship('Log',
                            foreign_keys=[Log.user_id],
@@ -51,10 +63,13 @@ class User(UserMixin, db.Model):
                                cascade='all, delete-orphan')
 
     def __repr__(self):
-        return u'<User name=%r email=%r>' % (self.name, self.email)
+        return '<User %r>' % self.email
 
     def borrowing(self, book):
         return self.logs.filter_by(book_id=book.id, returned=0).first()
+
+    def can_borrow_book(self):
+        return self.logs.filter(Log.returned == 0, Log.return_timestamp < datetime.now()).count() == 0
 
     def borrow_book(self, book):
         if self.logs.filter(Log.returned == 0, Log.return_timestamp < datetime.now()).count() > 0:
@@ -134,7 +149,7 @@ class Book(db.Model):
     #     self.numbers = numbers
 
     def can_borrow(self):
-        return Log.query.filter_by(book_id=self.id, returned=0).count() < self.numbers
+        return (not self.hidden) and self.can_borrow_number() > 0
 
     def can_borrow_number(self):
         return self.numbers - Log.query.filter_by(book_id=self.id, returned=0).count()

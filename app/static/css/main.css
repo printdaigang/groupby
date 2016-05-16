@@ -677,9 +677,10 @@ html, body, main {
     animation-name: fadeOutLeft;
 }
 
-.table.table-striped{
+.table.table-striped {
     border: none;
 }
-.table.table-striped td{
+
+.table.table-striped td {
     border: none;
 }
