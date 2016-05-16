@@ -1,14 +1,14 @@
 from flask import render_template, g
 from flask.ext.login import current_user
 from .forms import SearchForm
-from app.models import User, Book, Comment, Log
+from app.models import User, Book, Comment, Log, Permission
 from . import main
 from app import db
 
 
-@main.before_request
-def before_request():
-    g.user = current_user
+@main.app_context_processor
+def inject_permissions():
+    return dict(Permission=Permission)
 
 
 @main.route('/')

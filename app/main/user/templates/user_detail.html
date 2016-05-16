@@ -5,7 +5,7 @@
         <div class="row">
             {%- if user.avatar_url() -%}
                 <div class="col-md-3 animated bounceIn">
-                    {%- if g.user.id == user.id or g.user.admin -%}
+                    {%- if current_user.id == user.id or current_user.can(Permission.UPDATE_OTHERS_INFORMATION) -%}
                         <a href="{{ url_for('user.avatar',user_id=user.id) }}">
                             <div class="avatar avatar-large"
                                  style="background-image: url({{ user.avatar_url() }})"></div>
@@ -28,10 +28,11 @@
                 {% if user.major %}
                     <p>主修专业: {{ user.major }}</p>
                 {% endif %}
-                {% if g.user.id==user.id or g.user.admin %}
+                <p>加入日期: {{ user.member_since.strftime('%d %B %Y - %H:%M:%S') }}</p>
+                {% if current_user.id==user.id or current_user.can(Permission.UPDATE_OTHERS_INFORMATION) %}
                     <a class="btn btn-info" href="{{ url_for('user.edit',user_id=user.id) }}">编辑资料</a>
                 {% endif %}
-                {% if g.user.id==user.id %}
+                {% if current_user.id==user.id %}
                     <a class="btn btn-danger" href="{{ url_for('auth.change_password',user_id=user.id) }}">修改密码</a>
                 {% endif %}
 
@@ -74,7 +75,7 @@
                         <th>借阅书籍</th>
                         <th class="hidden-xs">借阅日期</th>
                         <th class="hidden-xs">应还日期</th>
-                        {%- if g.user.is_authenticated and g.user.id==user.id -%}
+                        {%- if current_user.is_authenticated and current_user.id==user.id -%}
                             <th>操作</th>
                         {%- endif -%}
                     </tr>
@@ -92,7 +93,7 @@
                             </td>
                             <td class="hidden-xs">{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                             <td class="hidden-xs">{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
-                            {%- if g.user.is_authenticated and g.user.id==user.id -%}
+                            {%- if current_user.is_authenticated and current_user.id==user.id -%}
                                 <td><a class="btn btn-primary"
                                        href="{{ url_for('log.book_return',log_id=log.id,next=request.path) }}">
                                     归还</a></td>

@@ -8,11 +8,6 @@ from app import db
 from . import auth
 
 
-@auth.before_request
-def before_request():
-    g.user = current_user
-
-
 @auth.route('/login/', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm()

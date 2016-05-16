@@ -45,6 +45,7 @@ use `deactive` to quit the virtual environment.
 - [Markdown](https://pythonhosted.org/Markdown/)
 - [Flask-PageDown](https://github.com/miguelgrinberg/Flask-PageDown)
 - [Flask-Uploads](https://packages.python.org/Flask-Uploads/)
+- [Bootstrap File Input](https://github.com/kartik-v/bootstrap-file-input)
 
 ## LICENSE
 The MIT License (MIT)

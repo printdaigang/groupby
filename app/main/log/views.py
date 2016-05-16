@@ -1,18 +1,15 @@
 # -*- coding:utf-8 -*-
 from flask import render_template, url_for, flash, redirect, request, abort, g
 from flask.ext.login import login_required, current_user
-from app.models import Book, Log
+from app.models import Book, Log, Permission
 from app import db
 from . import log
-
-
-@log.before_request
-def before_request():
-    g.user = current_user
+from ..decorators import permission_required
 
 
 @log.route('/borrow/')
 @login_required
+@permission_required(Permission.BORROW_BOOK)
 def book_borrow():
     book_id = request.args.get('book_id')
     the_book = Book.query.get_or_404(book_id)
@@ -27,6 +24,7 @@ def book_borrow():
 
 @log.route('/return/')
 @login_required
+@permission_required(Permission.RETURN_BOOK)
 def book_return():
     log_id = request.args.get('log_id')
     book_id = request.args.get('book_id')

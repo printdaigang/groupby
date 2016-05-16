@@ -1,8 +1,8 @@
-{% extends "bootstrap/base.html" %}
-{% from 'bootstrap/utils.html' import flashed_messages,icon %}
-{%- block metas %}
+{%- extends "bootstrap/base.html" -%}
+{%- from 'bootstrap/utils.html' import flashed_messages,icon -%}
+{%- block metas -%}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-{%- endblock metas %}
+{%- endblock metas -%}
 {%- block title -%}
     {%- if title -%}
         {{ title }} - Book Library
@@ -16,7 +16,7 @@
     <link href="{{ url_for('static',filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static',filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
 {%- endblock -%}
-{% block body_attribs %} class="Site"{% endblock %}
+{%- block body_attribs %} class="Site"{%- endblock -%}
 {%- block navbar -%}
     <nav class="navbar  navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
@@ -37,8 +37,8 @@
                 <ul class="nav navbar-nav">
                     <li {%- if request.path == url_for('book.index') %} class="active"{%- endif -%} ><a
                             href="{{ url_for('book.index') }}">书籍清单</a></li>
-                    {%- if g.user.is_authenticated -%}
-                        {%- if g.user.admin -%}
+                    {%- if current_user.is_authenticated -%}
+                        {%- if current_user.can(Permission.ADD_BOOK) -%}
                             <li {%- if request.path == url_for('book.add') %} class="active"{%- endif -%} ><a
                                     href="{{ url_for('book.add') }}">添加新书</a></li>
                         {%- endif -%}
@@ -46,13 +46,14 @@
                                 href="{{ url_for('user.index') }}">已注册用户</a></li>
                         <li {%- if request.path == url_for('log.index') %} class="active"{%- endif -%} ><a
                                 href="{{ url_for('log.index') }}">借阅信息</a></li>
-                    {% endif %}
+                    {%- endif -%}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    {%- if g.user.is_authenticated -%}
-                        <li {%- if request.path == url_for('user.detail',user_id=g.user.id) %}
+                    {%- if current_user.is_authenticated -%}
+                        <li {% if request.path == url_for('user.detail',user_id=current_user.id) -%}
                             class="active"{%- endif -%} >
-                            <a href="{{ url_for('user.detail',user_id=g.user.id) }}">{{ g.user.name }}</a></li>
+                            <a href="{{ url_for('user.detail',user_id=current_user.id) }}">{{ current_user.name }}</a>
+                        </li>
                         <li><a href="{{ url_for('auth.logout') }}">登出</a></li>
                     {%- else -%}
                         <li><a href="{{ url_for('auth.login') }}">登入</a></li>
@@ -69,7 +70,7 @@
     'success':icon('ok'),
     'danger':icon('ban-circle'),
     'info': icon('info-sign'),
-    'warning': icon('alert')} %}
+    'warning': icon('alert')} -%}
             {%- set messages=get_flashed_messages(with_categories=True) -%}
             {%- if messages -%}
                 {%- for cat, msg in messages -%}
@@ -81,8 +82,8 @@
                     </div>
                 {%- endfor -%}
             {%- endif -%}
-        {% endwith %}
-        {%- block mycontent %}{% endblock -%}
+        {%- endwith -%}
+        {%- block mycontent -%}{%- endblock -%}
     </main>
 
     <footer class="panel panel-inverse">

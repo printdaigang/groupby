@@ -1,17 +1,12 @@
 # -*- coding:utf-8 -*-
 from flask import render_template, url_for, flash, redirect, request, g, abort
 from flask.ext.login import current_user
-from app.models import Book, Log, Comment
+from app.models import Book, Log, Comment, Permission
 from .forms import SearchForm, CommentForm, EditBookForm, AddBookForm
 from app import db
-from .. import admin_required
+from ..decorators import admin_required, permission_required
 
 from . import book
-
-
-@book.before_request
-def before_request():
-    g.user = current_user
 
 
 @book.route('/')
@@ -20,7 +15,7 @@ def index():
     search_form = SearchForm()
     page = request.args.get('page', 1, type=int)
 
-    if not current_user.is_authenticated or not current_user.admin:
+    if not current_user.is_authenticated or not current_user.is_administrator():
         the_books = Book.query.filter_by(hidden=0)
 
     if search_word:
@@ -43,7 +38,7 @@ def index():
 def detail(book_id):
     the_book = Book.query.get_or_404(book_id)
 
-    if the_book.hidden and (not current_user.is_authenticated or not current_user.admin):
+    if the_book.hidden and (not current_user.is_authenticated or not current_user.is_administrator()):
         abort(404)
 
     show = request.args.get('show', 0, type=int)
@@ -63,7 +58,7 @@ def detail(book_id):
 
 
 @book.route('/<int:book_id>/edit/', methods=['GET', 'POST'])
-@admin_required
+@permission_required(Permission.UPDATE_BOOK_INFORMATION)
 def edit(book_id):
     book = Book.query.get_or_404(book_id)
     form = EditBookForm()
@@ -108,7 +103,7 @@ def edit(book_id):
 
 
 @book.route('/add/', methods=['GET', 'POST'])
-@admin_required
+@permission_required(Permission.ADD_BOOK)
 def add():
     form = AddBookForm()
     form.numbers.data = 3
@@ -138,7 +133,7 @@ def add():
 
 
 @book.route('/<int:book_id>/delete/')
-@admin_required
+@permission_required(Permission.DELETE_BOOK)
 def delete(book_id):
     the_book = Book.query.get_or_404(book_id)
     the_book.hidden = 1

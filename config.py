@@ -10,3 +10,5 @@ UPLOADS_DEFAULT_DEST = os.path.join(basedir, 'upload/')
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + DATABASE
 
 SECRET_KEY = 'you-will-never-guess'
+
+FLASKY_ADMIN = 'root@gmail.com'

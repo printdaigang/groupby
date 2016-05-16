@@ -1,15 +1,10 @@
 # -*- coding:utf-8 -*-
 from flask import render_template, url_for, flash, redirect, request, abort, g
 from flask.ext.login import login_required, current_user
-from app.models import User, Log
+from app.models import User, Log, Permission
 from .forms import EditProfileForm, AvatarEditForm, AvatarUploadForm
 from app import db, avatars
 from . import user
-
-
-@user.before_request
-def before_request():
-    g.user = current_user
 
 
 @user.route('/')
@@ -41,7 +36,7 @@ def detail(user_id):
 @user.route('/<int:user_id>/edit/', methods=['GET', 'POST'])
 @login_required
 def edit(user_id):
-    if current_user.id == user_id or current_user.admin:
+    if current_user.id == user_id or current_user.can(Permission.UPDATE_OTHERS_INFORMATION):
         the_user = User.query.get_or_404(user_id)
         form = EditProfileForm()
         if form.validate_on_submit():
@@ -66,7 +61,7 @@ def edit(user_id):
 @user.route('/<int:user_id>/avatar_edit/', methods=['GET', 'POST'])
 @login_required
 def avatar(user_id):
-    if current_user.id == user_id or current_user.admin:
+    if current_user.id == user_id or current_user.can(Permission.UPDATE_OTHERS_INFORMATION):
         the_user = User.query.get_or_404(user_id)
         avatar_edit_form = AvatarEditForm()
         avatar_upload_form = AvatarUploadForm()

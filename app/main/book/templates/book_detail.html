@@ -1,19 +1,19 @@
-{% extends "base.html" %}
-{% from "bootstrap/pagination.html" import render_pagination %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% block mycontent %}
+{%- extends "base.html" -%}
+{%- from "bootstrap/pagination.html" import render_pagination -%}
+{%- import "bootstrap/wtf.html" as wtf -%}
+{%- block mycontent -%}
     <div class="well well-lg">
 
         <h1 class="page-header animated fadeInLeft">{{ book.title }}
             <br>
-            {%- if book.subtitle %}
+            {%- if book.subtitle -%}
                 <small>{{ book.subtitle }}</small>
-            {% endif -%}
+            {%- endif -%}
         </h1>
         <div class="primary-info">
-            {% if book.image %}
+            {%- if book.image -%}
                 <img class="img-responsive" src="{{ book.image }}" alt="{{ book.title~' 封面' }}">
-            {% endif %}
+            {%- endif -%}
             <ul class="list-group">
                 <li class="list-group-item">ISBN: {{ book.isbn }}</li>
                 {%- if book.origin_title -%}
@@ -60,11 +60,11 @@
                 <div id="summary" class="panel-collapse collapse in" role="tabpanel"
                      aria-labelledby="headingOne">
                     <div class="panel-body">
-                        {% if book.summary_html %}
+                        {%- if book.summary_html -%}
                             {{ book.summary_html|safe }}
-                        {% else %}
+                        {%- else -%}
                             {{ book.summary }}
-                        {% endif %}
+                        {%- endif -%}
                     </div>
                 </div>
             </div>
@@ -80,11 +80,11 @@
                 <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel"
                      aria-labelledby="headingTwo">
                     <div class="panel-body">
-                        {% if book.catalog_html %}
+                        {%- if book.catalog_html -%}
                             {{ book.catalog_html|safe }}
-                        {% else %}
+                        {%- else -%}
                             {{ book.catalog }}
-                        {% endif %}
+                        {%- endif -%}
                     </div>
                 </div>
             </div>
@@ -92,8 +92,8 @@
         </div>
 
         <div class="btn-group">
-            {%- if g.user.is_authenticated -%}
-                {% with  log=g.user.borrowing(book) %}
+            {%- if current_user.is_authenticated -%}
+                {%- with  log=current_user.borrowing(book) -%}
                     {%- if log -%}
                         <a class="btn btn-primary"
                            href="{{ url_for('log.book_return',log_id=log.id,next=request.full_path ) }}">
@@ -102,47 +102,52 @@
                     {%- else -%}
                         <a class="btn btn-success"
                            href="{{ url_for('log.book_borrow',book_id=book.id,next=request.full_path) }}"
-                           {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
+                           {%- if not book.can_borrow() -%}disabled="disabled"{%- endif -%}>
                             借阅
                         </a>
                     {%- endif -%}
-                {% endwith %}
+                {%- endwith -%}
             {%- endif -%}
-            {%- if g.user.admin -%}
+            {%- if current_user.can(Permission.UPDATE_BOOK_INFORMATION) -%}
                 <a type="button" class="btn btn-warning" href="{{ url_for('book.edit',book_id=book.id) }}">编辑书籍信息
                 </a>
-                {% if book.hidden %}
+            {%- endif -%}
+
+            {%- if book.hidden -%}
+                {%- if current_user.is_administrator() -%}
                     <a type="button" class="btn btn-info"
                        href="{{ url_for('book.put_back',book_id=book.id) }}">还原书籍</a>
-                {% else %}
+                {%- endif -%}
+            {%- else -%}
+                {%- if current_user.can(Permission.DELETE_BOOK) -%}
                     <a type="button" class="btn btn-danger"
                        href="{{ url_for('book.delete',book_id=book.id) }}">删除书籍</a>
-                {% endif %}
+                {%- endif -%}
             {%- endif -%}
         </div>
     </div>
     <div class="well well-lg">
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist" id="log">
-            {% with tabindex= request.args.get('show') or '0' %}
-                <li role="presentation" {% if tabindex=='0' %}class="active"{% endif %}><a
-                        href="{% if tabindex=='0' %}#log{% else %}{{ url_for('book.detail',book_id=book.id,show=0,_anchor='log') }}{% endif %}"
+            {%- with tabindex= request.args.get('show') or '0' -%}
+                <li role="presentation" {%- if tabindex=='0' -%}class="active"{%- endif -%}><a
+                        href="{%- if tabindex=='0' -%}#log{%- else -%}{{ url_for('book.detail',book_id=book.id,show=0,_anchor='log') }}{%- endif -%}"
                         role="tab">书评</a></li>
-                <li role="presentation" {% if tabindex=='1' %}class="active"{% endif %}><a
-                        href="{% if tabindex=='1' %}#log{% else %}{{ url_for('book.detail',book_id=book.id,show=1,_anchor='log') }}{% endif %}"
+                <li role="presentation" {%- if tabindex=='1' -%}class="active"{%- endif -%}><a
+                        href="{%- if tabindex=='1' -%}#log{%- else -%}{{ url_for('book.detail',book_id=book.id,show=1,_anchor='log') }}{%- endif -%}"
                         role="tab">当前借阅信息</a></li>
-                <li role="presentation" {% if tabindex=='2' %}class="active"{% endif %}><a
-                        href="{% if tabindex=='2' %}#log{% else %}{{ url_for('book.detail',book_id=book.id,show=2,_anchor='log') }}{% endif %}"
+                <li role="presentation" {%- if tabindex=='2' -%}class="active"{%- endif -%}><a
+                        href="{%- if tabindex=='2' -%}#log{%- else -%}{{ url_for('book.detail',book_id=book.id,show=2,_anchor='log') }}{%- endif -%}"
                         role="tab">历史借阅信息</a></li>
-            {% endwith %}
+            {%- endwith -%}
         </ul>
         <!-- Tab panes -->
         <div class="tab-content">
 
-            {% if (request.args.get('show') or '0')=='0' %}
+            {%- if (request.args.get('show') or '0')=='0' -%}
 
                 <ul class="list-group">
-                    {%- if g.user.is_authenticated -%}
+                    {%- if current_user.is_authenticated -%}
                         <li class="list-group-item list-group-item">
                             <div class="row">
                                 <div class="col-md-4 col-md-offset-4">
@@ -153,18 +158,18 @@
                                 </div>
                             </div>
                         </li>
-                    {% endif %}
-                    {% for comment in data %}
+                    {%- endif -%}
+                    {%- for comment in data -%}
                         <li class="list-group-item clearfix">
                             <div class="media">
-                                {% if comment.user.avatar_url() %}
+                                {%- if comment.user.avatar_url() -%}
                                     <div class="media-left">
                                         <a href="{{ url_for('user.detail',user_id=comment.user.id) }}">
                                             <div class="media-object avatar avatar-small"
                                                  style="background-image: url({{ comment.user.avatar_url() }})"></div>
                                         </a>
                                     </div>
-                                {% endif %}
+                                {%- endif -%}
                                 <div class="media-body">
                                     <p class="media-heading"><a
                                             href="{{ url_for('user.detail',user_id=comment.user.id) }}">
@@ -172,26 +177,26 @@
                                         <small>{{ comment.user.headline or "" }}</small>
                                     </p>
                                     <p class="list-group-item-text">{{ comment.comment }}</p>
-                                    {% if comment.create_timestamp==comment.edit_timestamp %}
+                                    {%- if comment.create_timestamp==comment.edit_timestamp -%}
                                         <h4>
                                             <small>
                                                 发布于: {{ comment.create_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</small>
                                         </h4>
-                                    {% else %}
+                                    {%- else -%}
                                         <h4>
                                             <small>
                                                 编辑于: {{ comment.edit_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</small>
                                         </h4>
-                                    {% endif %}
+                                    {%- endif -%}
 
-                                    {% if comment.user_id == g.user.id or g.user.admin %}
+                                    {%- if comment.user_id == current_user.id or current_user.can(Permission.DELETE_OTHERS_COMMENT) -%}
                                         <a class="pull-right btn btn-danger btn-sm"
                                            href="{{ url_for('comment.delete',comment_id=comment.id,next=request.url) }}">删除</a>
-                                    {% endif %}
+                                    {%- endif -%}
                                 </div>
                             </div>
                         </li>
-                    {% endfor %}
+                    {%- endfor -%}
                 </ul>
                 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
                     <div class="modal-dialog">
@@ -199,7 +204,7 @@
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                         aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title">{{ g.user.name~' 对 '~book.title~' 的书评' }}</h4>
+                                <h4 class="modal-title">{{ current_user.name~' 对 '~book.title~' 的书评' }}</h4>
                             </div>
                             <form action="{{ url_for('comment.add',book_id=book.id) }}" method="post" class="form"
                                   role="form">
@@ -211,14 +216,13 @@
                                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭
                                     </button>
                                     {{ wtf.form_field(form.submit,button_map={'submit':'success'}) }}
-
                             </form>
                         </div><!-- /.modal-content -->
                     </div><!-- /.modal-dialog -->
                 </div><!-- /.modal -->
 
-            {% elif request.args.get('show')=='1' %}
-                {% if data %}
+            {%- elif request.args.get('show')=='1' -%}
+                {%- if data -%}
                     <table class="table table-striped table-hover">
                         <thead>
                         <tr>
@@ -229,24 +233,24 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for log in data %}
+                        {%- for log in data -%}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
+                                    <a href="{{ url_for('user.detail' ,user_id=current_user.id) }}">{{ current_user.name }}</a>
                                 </td>
-                                <td class="hidden-xs">{{ log.user.email }}</td>
+                                <td class="hidden-xs">{{ current_user.email }}</td>
                                 </td>
                                 <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                                 <td>{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                             </tr>
-                        {% endfor %}
+                        {%- endfor -%}
                         </tbody>
                     </table>
-                {% else %}
+                {%- else -%}
                     <div class="container-fluid">暂无信息</div>
-                {% endif %}
-            {% else %}
-                {% if data %}
+                {%- endif -%}
+            {%- else -%}
+                {%- if data -%}
                     <table class="table table-striped table-hover">
                         <thead>
                         <tr>
@@ -257,29 +261,29 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for log in data %}
+                        {%- for log in data -%}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
+                                    <a href="{{ url_for('user.detail' ,user_id=current_user.id) }}">{{ current_user.name }}</a>
                                 </td>
-                                <td class="hidden-xs">{{ log.user.email }}</td>
+                                <td class="hidden-xs">{{ current_user.email }}</td>
                                 </td>
                                 <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                                 <td>{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                             </tr>
-                        {% endfor %}
+                        {%- endfor -%}
                         </tbody>
                     </table>
-                {% else %}
+                {%- else -%}
                     <div class="container-fluid">暂无信息</div>
-                {% endif %}
+                {%- endif -%}
 
-            {% endif %}
+            {%- endif -%}
         </div>
 
-        {% if pagination and pagination.pages > 1 %}
+        {%- if pagination and pagination.pages > 1 -%}
             <div class="container-fluid text-center">
                 {{ render_pagination(pagination,args={'_anchor':'log'}) }}
             </div>
-        {% endif %}
-{% endblock %}
+        {%- endif -%}
+{%- endblock -%}

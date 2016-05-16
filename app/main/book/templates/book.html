@@ -24,7 +24,7 @@
             <th class="hidden-xs">ISBN</th>
             <th class="hidden-xs">馆藏 / 可借</th>
             <th class="hidden-xs">借阅册次</th>
-            {%- if g.user.is_authenticated -%}
+            {%- if current_user.is_authenticated -%}
                 <th>操作</th>
             {%- endif -%}
         </tr>
@@ -41,9 +41,9 @@
                 <td class="hidden-xs">{{ book.isbn }}</td>
                 <td class="hidden-xs">{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
                 <td class="hidden-xs">{{ book.logs.count() }}</td>
-                {%- if g.user.is_authenticated -%}
+                {%- if current_user.is_authenticated -%}
                     <td>
-                        {% with borrowing_log=g.user.borrowing(book) %}
+                        {% with borrowing_log=current_user.borrowing(book) %}
                             {%- if borrowing_log -%}
                                 <a class="btn btn-primary"
                                    href="{{ url_for('log.book_return',log_id=borrowing_log.id,next=request.full_path) }}">归还</a>
@@ -53,14 +53,16 @@
                                         {%- if not book.can_borrow() %} disabled="disabled"{%- endif -%}>借阅</a>
                             {%- endif -%}
                         {% endwith %}
-                        {%- if g.user.admin -%}
-                            {% if book.hidden %}
+                        {% if book.hidden %}
+                            {%- if current_user.is_administrator() -%}
                                 <a type="button" class="btn btn-info"
                                    href="{{ url_for('book.put_back',book_id=book.id,next=request.full_path) }}">还原书籍</a>
-                            {% else %}
+                            {%- endif -%}
+                        {% else %}
+                            {%- if current_user.can(Permission.DELETE_BOOK) -%}
                                 <a type="button" class="btn btn-danger"
                                    href="{{ url_for('book.delete',book_id=book.id,next=request.full_path) }}">删除书籍</a>
-                            {% endif %}
+                            {%- endif -%}
                         {%- endif -%}
                     </td>
                 {%- endif -%}
