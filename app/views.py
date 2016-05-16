@@ -34,7 +34,6 @@ def index():
     popular_books = Book.query.outerjoin(Log).group_by(Book.id).order_by(db.func.count(Log.id).desc()).limit(5)
     popular_users = User.query.outerjoin(Log).group_by(User.id).order_by(db.func.count(Log.id).desc()).limit(5)
     recently_comments = Comment.query.filter_by(deleted=0).order_by(Comment.edit_timestamp.desc()).limit(5)
-    # print popular_books
     return render_template("index.html", books=popular_books, users=popular_users, recently_comments=recently_comments,
                            search_form=search_form)
 
@@ -67,8 +66,6 @@ def books():
 @app.route('/books/<book_id>/')
 def book_detail(book_id):
     the_book = Book.query.get_or_404(book_id)
-    # borrowing_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=0).all())
-    # borrowed_data = map(lambda l: (l.user, l.timestamp), Log.query.filter_by(book_id=book_id, returned=1).all())
 
     if the_book.hidden and (not current_user.is_authenticated or not current_user.admin):
         abort(404)
@@ -85,7 +82,6 @@ def book_detail(book_id):
             .order_by(Comment.edit_timestamp.desc()).paginate(page, per_page=5)
 
     data = pagination.items
-    # print data
     return render_template("book_detail.html", book=the_book, data=data, pagination=pagination, form=form,
                            title=the_book.title)
 
@@ -173,7 +169,8 @@ def book_borrow():
     if the_book.hidden and not current_user.admin:
         abort(404)
 
-    flash(*current_user.borrow_book(the_book))
+    result, message = current_user.borrow_book(the_book)
+    flash(message, 'success' if result else 'danger')
     db.session.commit()
     return redirect(request.args.get('next') or url_for('book_detail', book_id=book_id))
 
@@ -187,11 +184,12 @@ def book_return():
     if log_id:
         log = Log.query.get(log_id)
     if book_id:
-        log = Log.query.filter_by(user_id=current_user.id, book_id=book_id, returned=0)
+        log = Log.query.filter_by(user_id=current_user.id, book_id=book_id).first()
     if log is None:
-        flash(u'没有找到这条记录')
+        flash(u'没有找到这条记录', 'warning')
     else:
-        flash(*current_user.return_book(log))
+        result, message = current_user.return_book(log)
+        flash(message, 'success' if result else 'danger')
         db.session.commit()
     return redirect(request.args.get('next') or url_for('book_detail', book_id=log_id))
 
@@ -279,7 +277,6 @@ def avatar_edit(user_id):
         avatar_edit_form = AvatarEditForm()
         avatar_upload_form = AvatarUploadForm()
         if avatar_upload_form.validate_on_submit():
-            print "avatar_edit_form"
             if 'avatar' in request.files:
                 forder = str(user_id)
                 avatar_name = avatars.save(avatar_upload_form.avatar.data, folder=forder)

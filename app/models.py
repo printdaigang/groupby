@@ -73,22 +73,22 @@ class User(UserMixin, db.Model):
 
     def borrow_book(self, book):
         if self.logs.filter(Log.returned == 0, Log.return_timestamp < datetime.now()).count() > 0:
-            return u"无法借阅,你有超期的图书未归还", 'danger'
+            return False, u"无法借阅,你有超期的图书未归还"
         if self.borrowing(book):
-            return u'貌似你已经借阅了这本书!!', 'warning'
+            return False, u'貌似你已经借阅了这本书!!'
         if not book.can_borrow():
-            return u'这本书太火了,我们已经没有馆藏了,请等待别人归还以后再来借阅', 'danger'
+            return False, u'这本书太火了,我们已经没有馆藏了,请等待别人归还以后再来借阅'
 
         db.session.add(Log(self, book))
-        return u'你成功GET到了一本 %s' % book.title, 'success'
+        return True, u'你成功GET到了一本 %s' % book.title
 
     def return_book(self, log):
         if log.returned == 1 or log.user_id != self.id:
-            return u'没有找到这条记录', 'danger'
+            return False, u'没有找到这条记录'
         log.returned = 1
         log.return_timestamp = datetime.now()
         db.session.add(log)
-        return u'你归还了一本 %s' % log.book.title, 'success'
+        return True, u'你归还了一本 %s' % log.book.title
 
     def avatar_url(self):
         from flask import url_for
