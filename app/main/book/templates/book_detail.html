@@ -96,12 +96,12 @@
                 {% with  log=g.user.borrowing(book) %}
                     {%- if log -%}
                         <a class="btn btn-primary"
-                           href="{{ url_for('book_return',log_id=log.id,next=request.full_path ) }}">
+                           href="{{ url_for('log.book_return',log_id=log.id,next=request.full_path ) }}">
                             归还
                         </a>
                     {%- else -%}
                         <a class="btn btn-success"
-                           href="{{ url_for('book_borrow',book_id=book.id,next=request.full_path) }}"
+                           href="{{ url_for('log.book_borrow',book_id=book.id,next=request.full_path) }}"
                            {% if not book.can_borrow() %}disabled="disabled"{% endif %}>
                             借阅
                         </a>
@@ -109,14 +109,14 @@
                 {% endwith %}
             {%- endif -%}
             {%- if g.user.admin -%}
-                <a type="button" class="btn btn-warning" href="{{ url_for('book_edit',book_id=book.id) }}">编辑书籍信息
+                <a type="button" class="btn btn-warning" href="{{ url_for('book.edit',book_id=book.id) }}">编辑书籍信息
                 </a>
                 {% if book.hidden %}
                     <a type="button" class="btn btn-info"
-                       href="{{ url_for('book_put_back',book_id=book.id) }}">还原书籍</a>
+                       href="{{ url_for('book.put_back',book_id=book.id) }}">还原书籍</a>
                 {% else %}
                     <a type="button" class="btn btn-danger"
-                       href="{{ url_for('book_delete',book_id=book.id) }}">删除书籍</a>
+                       href="{{ url_for('book.delete',book_id=book.id) }}">删除书籍</a>
                 {% endif %}
             {%- endif -%}
         </div>
@@ -126,13 +126,13 @@
         <ul class="nav nav-tabs" role="tablist" id="log">
             {% with tabindex= request.args.get('show') or '0' %}
                 <li role="presentation" {% if tabindex=='0' %}class="active"{% endif %}><a
-                        href="{% if tabindex=='0' %}#log{% else %}{{ url_for('book_detail',book_id=book.id,show=0,_anchor='log') }}{% endif %}"
+                        href="{% if tabindex=='0' %}#log{% else %}{{ url_for('book.detail',book_id=book.id,show=0,_anchor='log') }}{% endif %}"
                         role="tab">书评</a></li>
                 <li role="presentation" {% if tabindex=='1' %}class="active"{% endif %}><a
-                        href="{% if tabindex=='1' %}#log{% else %}{{ url_for('book_detail',book_id=book.id,show=1,_anchor='log') }}{% endif %}"
+                        href="{% if tabindex=='1' %}#log{% else %}{{ url_for('book.detail',book_id=book.id,show=1,_anchor='log') }}{% endif %}"
                         role="tab">当前借阅信息</a></li>
                 <li role="presentation" {% if tabindex=='2' %}class="active"{% endif %}><a
-                        href="{% if tabindex=='2' %}#log{% else %}{{ url_for('book_detail',book_id=book.id,show=2,_anchor='log') }}{% endif %}"
+                        href="{% if tabindex=='2' %}#log{% else %}{{ url_for('book.detail',book_id=book.id,show=2,_anchor='log') }}{% endif %}"
                         role="tab">历史借阅信息</a></li>
             {% endwith %}
         </ul>
@@ -159,7 +159,7 @@
                             <div class="media">
                                 {% if comment.user.avatar_url() %}
                                     <div class="media-left">
-                                        <a href="{{ url_for('user_detail',user_id=comment.user.id) }}">
+                                        <a href="{{ url_for('user.detail',user_id=comment.user.id) }}">
                                             <div class="media-object avatar avatar-small"
                                                  style="background-image: url({{ comment.user.avatar_url() }})"></div>
                                         </a>
@@ -167,7 +167,7 @@
                                 {% endif %}
                                 <div class="media-body">
                                     <p class="media-heading"><a
-                                            href="{{ url_for('user_detail',user_id=comment.user.id) }}">
+                                            href="{{ url_for('user.detail',user_id=comment.user.id) }}">
                                         {{ comment.user.name }}</a>
                                         <small>{{ comment.user.headline or "" }}</small>
                                     </p>
@@ -186,7 +186,7 @@
 
                                     {% if comment.user_id == g.user.id or g.user.admin %}
                                         <a class="pull-right btn btn-danger btn-sm"
-                                           href="{{ url_for('delete_comment',comment_id=comment.id,next=request.url) }}">删除</a>
+                                           href="{{ url_for('comment.delete',comment_id=comment.id,next=request.url) }}">删除</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -201,7 +201,7 @@
                                         aria-hidden="true">&times;</span></button>
                                 <h4 class="modal-title">{{ g.user.name~' 对 '~book.title~' 的书评' }}</h4>
                             </div>
-                            <form action="{{ url_for('add_comment',book_id=book.id) }}" method="post" class="form"
+                            <form action="{{ url_for('comment.add',book_id=book.id) }}" method="post" class="form"
                                   role="form">
                                 {{ form.hidden_tag() }}
                                 <div class="modal-body">
@@ -232,7 +232,7 @@
                         {% for log in data %}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user_detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
+                                    <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                 </td>
                                 <td class="hidden-xs">{{ log.user.email }}</td>
                                 </td>
@@ -260,7 +260,7 @@
                         {% for log in data %}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user_detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
+                                    <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                 </td>
                                 <td class="hidden-xs">{{ log.user.email }}</td>
                                 </td>
