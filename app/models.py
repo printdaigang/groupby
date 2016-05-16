@@ -139,15 +139,6 @@ class Book(db.Model):
                                lazy='dynamic',
                                cascade='all, delete-orphan')
 
-    # def __init__(self, title, subtitle=None, author=None, isbn=None, category=None, description="", numbers=5):
-    #     self.isbn = isbn
-    #     self.title = title
-    #     self.subtitle = subtitle
-    #     self.author = author
-    #     self.category = category
-    #     self.description = description
-    #     self.numbers = numbers
-
     def can_borrow(self):
         return (not self.hidden) and self.can_borrow_number() > 0
 
