@@ -31,8 +31,13 @@
                 {%- if book.pubdate -%}
                     <li class="list-group-item">出版日期: {{ book.pubdate }}</li>
                 {%- endif -%}
-                {%- if book.tags -%}
-                    <li class="list-group-item">标签: {{ book.tags }}</li>
+                {%- if book.tags.count() -%}
+                    <li class="list-group-item">标签:
+                        {% for tag in book.tags %}
+                            <a class="tag line-wrap" href="{{ url_for('.tags',search=tag.name) }}">{{ tag.name }} <span
+                                    class="badge">{{ tag.books.count() }}</span></a>
+                        {% endfor %}
+                    </li>
                 {%- endif -%}
                 {%- if book.pages -%}
                     <li class="list-group-item">页数: {{ book.pages }}</li>

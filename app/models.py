@@ -171,7 +171,6 @@ class Book(db.Model):
     publisher = db.Column(db.String(64))
     image = db.Column(db.String(128))
     pubdate = db.Column(db.String(32))
-    tags = db.Column(db.String(128))
     pages = db.Column(db.Integer)
     price = db.Column(db.String(16))
     binding = db.Column(db.String(16))
@@ -190,6 +189,24 @@ class Book(db.Model):
     comments = db.relationship('Comment', backref='book',
                                lazy='dynamic',
                                cascade='all, delete-orphan')
+
+    @property
+    def tags_string(self):
+        return ",".join([tag.name for tag in self.tags.all()])
+
+    @tags_string.setter
+    def tags_string(self, value):
+        self.tags = []
+        tags_list = value.split(u',')
+        for str in tags_list:
+            tag = Tag.query.filter(Tag.name.ilike(str)).first()
+            if tag is None:
+                tag = Tag(name=str)
+
+            self.tags.append(tag)
+
+        db.session.add(self)
+        db.session.commit()
 
     def can_borrow(self):
         return (not self.hidden) and self.can_borrow_number() > 0
@@ -258,3 +275,22 @@ class Comment(db.Model):
         self.create_timestamp = datetime.now()
         self.edit_timestamp = self.create_timestamp
         self.deleted = 0
+
+
+book_tag = db.Table('books_tags',
+                    db.Column('book_id', db.Integer, db.ForeignKey('books.id')),
+                    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'))
+                    )
+
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    books = db.relationship('Book',
+                            secondary=book_tag,
+                            backref=db.backref('tags', lazy='dynamic'),
+                            lazy='dynamic')
+
+    def __repr__(self):
+        return u'<Tag %s>' % self.name
