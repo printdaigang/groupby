@@ -241,7 +241,7 @@
                         {%- for log in data -%}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user.detail' ,user_id=current_user.id) }}">{{ current_user.name }}</a>
+                                    <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                 </td>
                                 <td class="hidden-xs">{{ current_user.email }}</td>
                                 </td>
@@ -269,7 +269,7 @@
                         {%- for log in data -%}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user.detail' ,user_id=current_user.id) }}">{{ current_user.name }}</a>
+                                    <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                 </td>
                                 <td class="hidden-xs">{{ current_user.email }}</td>
                                 </td>
