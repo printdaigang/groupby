@@ -20,7 +20,7 @@
             <th>ISBN</th>
             <th>馆藏 / 可借</th>
             <th>借阅册次</th>
-            {% if g.user.is_authenticated %}
+            {% if current_user.is_authenticated %}
                 <th>操作</th>
             {% endif %}
         </tr>
@@ -35,8 +35,8 @@
                 <td class="hidden-xs">{{ book.isbn }}</td>
                 <td class="hidden-xs">{{ book.numbers }} / {{ book.can_borrow_number() }}</td>
                 <td class="hidden-xs">{{ book.logs.count() }}</td>
-                {% if g.user.is_authenticated %}
-                    {% with log =g.user.borrowing(book) %}
+                {% if current_user.is_authenticated %}
+                    {% with log =current_user.borrowing(book) %}
                         {% if log %}
                             <td><a class="btn btn-primary"
                                    href="{{ url_for('log.book_return',log_id=log.id,next=request.path) }}">

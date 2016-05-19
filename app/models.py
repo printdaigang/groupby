@@ -1,30 +1,11 @@
 # -*- coding: utf-8 -*-
-from app import db
-from flask.ext.login import UserMixin
+from flask import current_app
+from flask.ext.login import UserMixin, AnonymousUserMixin
 from datetime import datetime, timedelta
 import bleach
 from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
-
-
-class Log(db.Model):
-    __tablename__ = 'logs'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
-    borrow_timestamp = db.Column(db.DateTime, default=datetime.now())
-    return_timestamp = db.Column(db.DateTime, default=datetime.now())
-    returned = db.Column(db.Boolean, default=0)
-
-    def __init__(self, user, book):
-        self.user = user
-        self.book = book
-        self.borrow_timestamp = datetime.now()
-        self.return_timestamp = datetime.now() + timedelta(days=30)
-        self.returned = 0
-
-    def __repr__(self):
-        return u'<%r - %r>' % (self.user.name, self.book.title)
+from app import db, lm
 
 
 class User(UserMixin, db.Model):
@@ -34,11 +15,12 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(64))
     password_hash = db.deferred(db.Column(db.String(128)))
     major = db.Column(db.String(128))
-    admin = db.Column(db.Boolean, default=0)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     headline = db.Column(db.String(32), nullable=True)
     about_me = db.deferred(db.Column(db.Text, nullable=True))
     about_me_html = db.deferred(db.Column(db.Text, nullable=True))
     avatar = db.Column(db.String(128))
+    member_since = db.Column(db.DateTime(), default=datetime.utcnow)
 
     @property
     def password(self):
@@ -51,8 +33,23 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        if self.role is None:
+            if self.email.lower() == current_app.config['FLASKY_ADMIN'].lower():
+                self.role = Role.query.filter_by(permissions=0x1ff).first()
+            if self.role is None:
+                self.role = Role.query.filter_by(default=True).first()
+        self.member_since = datetime.now()
+
+    def can(self, permissions):
+        return self.role is not None and \
+               (self.role.permissions & permissions) == permissions
+
+    def is_administrator(self):
+        return self.can(Permission.ADMINISTER)
+
     logs = db.relationship('Log',
-                           foreign_keys=[Log.user_id],
                            backref=db.backref('user', lazy='joined'),
                            lazy='dynamic',
                            cascade='all, delete-orphan')
@@ -106,6 +103,62 @@ class User(UserMixin, db.Model):
 db.event.listen(User.about_me, 'set', User.on_changed_about_me)
 
 
+class AnonymousUser(AnonymousUserMixin):
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+
+
+lm.anonymous_user = AnonymousUser
+
+
+class Permission(object):
+    RETURN_BOOK = 0x01
+    BORROW_BOOK = 0x02
+    WRITE_COMMENT = 0x04
+    DELETE_OTHERS_COMMENT = 0x08
+    UPDATE_OTHERS_INFORMATION = 0x10
+    UPDATE_BOOK_INFORMATION = 0x20
+    ADD_BOOK = 0x40
+    DELETE_BOOK = 0x80
+    ADMINISTER = 0x100
+
+
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    permissions = db.Column(db.Integer)
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+    @staticmethod
+    def insert_roles():
+        roles = {
+            'User': (Permission.RETURN_BOOK |
+                     Permission.BORROW_BOOK |
+                     Permission.WRITE_COMMENT, True),
+            'Moderator': (Permission.RETURN_BOOK |
+                          Permission.BORROW_BOOK |
+                          Permission.WRITE_COMMENT |
+                          Permission.DELETE_OTHERS_COMMENT, False),
+            'Administrator': (0x1ff, False)
+        }
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.permissions = roles[r][0]
+            role.default = roles[r][1]
+            db.session.add(role)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<Role %r>' % self.name
+
+
 class Book(db.Model):
     __tablename__ = 'books'
     id = db.Column(db.Integer, primary_key=True)
@@ -118,7 +171,6 @@ class Book(db.Model):
     publisher = db.Column(db.String(64))
     image = db.Column(db.String(128))
     pubdate = db.Column(db.String(32))
-    tags = db.Column(db.String(128))
     pages = db.Column(db.Integer)
     price = db.Column(db.String(16))
     binding = db.Column(db.String(16))
@@ -130,7 +182,6 @@ class Book(db.Model):
     hidden = db.Column(db.Boolean, default=0)
 
     logs = db.relationship('Log',
-                           foreign_keys=[Log.book_id],
                            backref=db.backref('book', lazy='joined'),
                            lazy='dynamic',
                            cascade='all, delete-orphan')
@@ -138,6 +189,24 @@ class Book(db.Model):
     comments = db.relationship('Comment', backref='book',
                                lazy='dynamic',
                                cascade='all, delete-orphan')
+
+    @property
+    def tags_string(self):
+        return ",".join([tag.name for tag in self.tags.all()])
+
+    @tags_string.setter
+    def tags_string(self, value):
+        self.tags = []
+        tags_list = value.split(u',')
+        for str in tags_list:
+            tag = Tag.query.filter(Tag.name.ilike(str)).first()
+            if tag is None:
+                tag = Tag(name=str)
+
+            self.tags.append(tag)
+
+        db.session.add(self)
+        db.session.commit()
 
     def can_borrow(self):
         return (not self.hidden) and self.can_borrow_number() > 0
@@ -169,6 +238,26 @@ db.event.listen(Book.summary, 'set', Book.on_changed_summary)
 db.event.listen(Book.catalog, 'set', Book.on_changed_catalog)
 
 
+class Log(db.Model):
+    __tablename__ = 'logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
+    borrow_timestamp = db.Column(db.DateTime, default=datetime.now())
+    return_timestamp = db.Column(db.DateTime, default=datetime.now())
+    returned = db.Column(db.Boolean, default=0)
+
+    def __init__(self, user, book):
+        self.user = user
+        self.book = book
+        self.borrow_timestamp = datetime.now()
+        self.return_timestamp = datetime.now() + timedelta(days=30)
+        self.returned = 0
+
+    def __repr__(self):
+        return u'<%r - %r>' % (self.user.name, self.book.title)
+
+
 class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
@@ -186,3 +275,22 @@ class Comment(db.Model):
         self.create_timestamp = datetime.now()
         self.edit_timestamp = self.create_timestamp
         self.deleted = 0
+
+
+book_tag = db.Table('books_tags',
+                    db.Column('book_id', db.Integer, db.ForeignKey('books.id')),
+                    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'))
+                    )
+
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    books = db.relationship('Book',
+                            secondary=book_tag,
+                            backref=db.backref('tags', lazy='dynamic'),
+                            lazy='dynamic')
+
+    def __repr__(self):
+        return u'<Tag %s>' % self.name

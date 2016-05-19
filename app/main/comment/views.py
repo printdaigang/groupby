@@ -1,15 +1,16 @@
 # -*- coding:utf-8 -*-
 from flask import url_for, flash, redirect, request, abort
 from flask.ext.login import login_required, current_user
-from app.models import Book, Comment
+from app.models import Book, Comment, Permission
 from .forms import CommentForm
 from app import db
-
+from ..decorators import permission_required
 from . import comment
 
 
 @comment.route('/add/<int:book_id>/', methods=['POST', ])
 @login_required
+@permission_required(Permission.WRITE_COMMENT)
 def add(book_id):
     form = CommentForm()
     the_book = Book.query.get_or_404(book_id)
@@ -28,7 +29,7 @@ def add(book_id):
 @login_required
 def delete(comment_id):
     the_comment = Comment.query.get_or_404(comment_id)
-    if current_user.id == the_comment.user_id or current_user.admin:
+    if current_user.id == the_comment.user_id or current_user.can(Permission.DELETE_OTHERS_COMMENT):
         the_comment.deleted = 1
         book_id = the_comment.book_id
         db.session.add(the_comment)

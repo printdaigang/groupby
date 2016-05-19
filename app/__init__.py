@@ -22,13 +22,14 @@ def create_app():
     pagedown.init_app(app)
     configure_uploads(app, avatars)
 
+    from app.main import main, auth, user, book, comment, log
+    for blueprint in [main, auth, user, book, comment, log]:
+        app.register_blueprint(blueprint)
+
     exists_db = os.path.isfile(app.config['DATABASE'])
     if not exists_db:
-        import db_fill
-
-    from app.main import main, auth, user, book, comment, log
-    for blueprint in [main,auth, user, book, comment, log]:
-        app.register_blueprint(blueprint)
+        from db_fill import db_fill
+        db_fill(app, db, models.User, models.Book, models.Log, models.Role)
 
     return app
 

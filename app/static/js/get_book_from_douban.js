@@ -72,9 +72,11 @@
                         document.getElementById('publisher').value = data.publisher;
                         document.getElementById('image').value = data.images.large || data.images.medium || data.images.small || '';
                         document.getElementById('pubdate').value = data.pubdate;
-                        document.getElementById('tags').value = data.tags.map(function (item) {
+
+                        $('#tags').tokenfield('setTokens', data.tags.map(function (item) {
                             return item.name;
-                        }).join('/');
+                        }));
+
                         document.getElementById('pages').value = data.pages;
                         document.getElementById('price').value = data.price;
                         document.getElementById('binding').value = data.binding;
