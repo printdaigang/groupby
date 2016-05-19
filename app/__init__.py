@@ -16,8 +16,9 @@ avatars = UploadSet('avatars', IMAGES)
 configure_uploads(app, avatars)
 
 from app.main import main, auth, user, book, comment, log
+from app.api import api_bp
 
-for blueprint in [main, auth, user, book, comment, log]:
+for blueprint in [main, auth, user, book, comment, log, api_bp]:
     app.register_blueprint(blueprint)
 
 from app import models
@@ -26,3 +27,4 @@ exists_db = os.path.isfile(app.config['DATABASE'])
 if not exists_db:
     import db_fill
 
+print app.url_map
