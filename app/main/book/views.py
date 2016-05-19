@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from flask import render_template, url_for, flash, redirect, request, g, abort
+from flask import render_template, url_for, flash, redirect, request, abort
 from flask.ext.login import current_user
 from app.models import Book, Log, Comment, Permission, Tag, book_tag
 from .forms import SearchForm, CommentForm, EditBookForm, AddBookForm

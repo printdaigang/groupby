@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from flask import render_template, url_for, flash, redirect, request, g
+from flask import render_template, url_for, flash, redirect, request
 from flask.ext.login import login_user, logout_user, login_required, current_user
 from app.models import User
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm
