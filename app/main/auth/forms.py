@@ -10,7 +10,7 @@ from app import db
 class LoginForm(Form):
     email = StringField('Email',
                         validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 64), Email(message=u"你确定这是 Email ?")])
-    password = PasswordField(u'密码', validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 128)])
+    password = PasswordField(u'密码', validators=[DataRequired(message=u"该项忘了填写了!"), Length(6, 32)])
     remember_me = BooleanField(u"保持我的登入状态", default=True)
     submit = SubmitField(u'登入')
 
@@ -21,7 +21,7 @@ class RegistrationForm(Form):
     name = StringField(u'用户名', validators=[DataRequired(message=u"该项忘了填写了!"), Length(1, 64)])
     password = PasswordField(u'密码',
                              validators=[DataRequired(message=u"该项忘了填写了!"), EqualTo('password2', message=u'密码必须匹配'),
-                                         Length(1, 128)])
+                                         Length(6, 32)])
     password2 = PasswordField(u'再次确认密码', validators=[DataRequired(message=u"该项忘了填写了!")])
     submit = SubmitField(u'注册')
 
@@ -34,7 +34,7 @@ class ChangePasswordForm(Form):
     old_password = PasswordField(u'旧密码', validators=[DataRequired(message=u"该项忘了填写了!")])
     new_password = PasswordField(u'新密码', validators=[DataRequired(message=u"该项忘了填写了!"),
                                                      EqualTo('confirm_password', message=u'密码必须匹配'),
-                                                     Length(1, 128)])
+                                                     Length(6, 32)])
     confirm_password = PasswordField(u'确认新密码', validators=[DataRequired(message=u"该项忘了填写了!")])
     submit = SubmitField(u"保存密码")
 

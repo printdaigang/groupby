@@ -16,7 +16,7 @@ class EditProfileForm(Form):
 
 
 class AvatarEditForm(Form):
-    avatar_url = StringField('', validators=[Length(0, 128, message=u"长度限制在128字符以内"), URL(message=u"请填写正确的URL")])
+    avatar_url = StringField('', validators=[Length(1, 100, message=u"长度限制在100字符以内"), URL(message=u"请填写正确的URL")])
     submit = SubmitField(u"保存")
 
 
