@@ -88,15 +88,16 @@ class User(UserMixin, db.Model):
         db.session.add(log)
         return True, u'你归还了一本 %s' % log.book.title
 
-    def avatar_url(self):
+    def avatar_url(self, _external=False):
         if self.avatar:
             avatar_json = json.loads(self.avatar)
             if avatar_json['use_out_url']:
                 return avatar_json['url']
             else:
-                return url_for('_uploads.uploaded_file', setname=avatars.name, filename=avatar_json['url'])
+                return url_for('_uploads.uploaded_file', setname=avatars.name, filename=avatar_json['url'],
+                               _external=_external)
         else:
-            return url_for('static', filename='img/avatar.png')
+            return url_for('static', filename='img/avatar.png', _external=_external)
 
     @staticmethod
     def on_changed_about_me(target, value, oldvalue, initiaor):
