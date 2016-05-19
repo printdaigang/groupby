@@ -25,7 +25,7 @@ def add(book_id):
     return redirect(request.args.get('next') or url_for('book.detail', book_id=book_id))
 
 
-@comment.route('/commnets/delete/<int:comment_id>')
+@comment.route('/delete/<int:comment_id>')
 @login_required
 def delete(comment_id):
     the_comment = Comment.query.get_or_404(comment_id)
