@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from flask import current_app
+from flask import current_app, url_for
 from flask.ext.login import UserMixin, AnonymousUserMixin
 from datetime import datetime, timedelta
 import bleach
 from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db, lm
+from app import db, lm, avatars
+import json
 
 
 class User(UserMixin, db.Model):
@@ -88,8 +89,14 @@ class User(UserMixin, db.Model):
         return True, u'你归还了一本 %s' % log.book.title
 
     def avatar_url(self):
-        from flask import url_for
-        return self.avatar or url_for('static', filename='img/avatar.png')
+        if self.avatar:
+            avatar_json = json.loads(self.avatar)
+            if avatar_json['use_out_url']:
+                return avatar_json['url']
+            else:
+                return url_for('_uploads.uploaded_file', setname=avatars.name, filename=avatar_json['url'])
+        else:
+            return url_for('static', filename='img/avatar.png')
 
     @staticmethod
     def on_changed_about_me(target, value, oldvalue, initiaor):

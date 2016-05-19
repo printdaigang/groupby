@@ -5,6 +5,7 @@ from app.models import User, Log, Permission
 from .forms import EditProfileForm, AvatarEditForm, AvatarUploadForm
 from app import db, avatars
 from . import user
+import json
 
 
 @user.route('/')
@@ -69,13 +70,13 @@ def avatar(user_id):
             if 'avatar' in request.files:
                 forder = str(user_id)
                 avatar_name = avatars.save(avatar_upload_form.avatar.data, folder=forder)
-                the_user.avatar = '/_uploads/avatars/%s' % avatar_name
+                the_user.avatar = json.dumps({"use_out_url": False, "url": avatar_name})
                 db.session.add(the_user)
                 db.session.commit()
                 flash(u'头像更新成功!', 'success')
                 return redirect(url_for('user.detail', user_id=user_id))
         if avatar_edit_form.validate_on_submit():
-            the_user.avatar = avatar_edit_form.avatar_url.data
+            the_user.avatar = json.dumps({"use_out_url": True, "url": avatar_edit_form.avatar_url.data})
             db.session.add(the_user)
             db.session.commit()
             return redirect(url_for('user.detail', user_id=user_id))
