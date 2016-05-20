@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
+from app import db
+from app.models import Book, Comment, Permission
 from flask import url_for, flash, redirect, request, abort
 from flask.ext.login import login_required, current_user
-from app.models import Book, Comment, Permission
-from .forms import CommentForm
-from app import db
-from ..decorators import permission_required
 from . import comment
+from .forms import CommentForm
+from ..decorators import permission_required
 
 
 @comment.route('/add/<int:book_id>/', methods=['POST', ])

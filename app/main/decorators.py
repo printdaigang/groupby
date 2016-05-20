@@ -1,7 +1,8 @@
 from functools import wraps
+
+from app.models import Permission
 from flask import abort
 from flask.ext.login import current_user
-from app.models import Permission
 
 
 def permission_required(permission):

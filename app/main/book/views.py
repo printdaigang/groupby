@@ -1,12 +1,12 @@
 # -*- coding:utf-8 -*-
+from app import db
+from app.models import Book, Log, Comment, Permission, Tag, book_tag
 from flask import render_template, url_for, flash, redirect, request, abort
 from flask.ext.login import current_user
-from app.models import Book, Log, Comment, Permission, Tag, book_tag
-from .forms import SearchForm, CommentForm, EditBookForm, AddBookForm
-from app import db
-from ..decorators import admin_required, permission_required
-
 from . import book
+from .forms import SearchForm, EditBookForm, AddBookForm
+from ..comment.forms import CommentForm
+from ..decorators import admin_required, permission_required
 
 
 @book.route('/')

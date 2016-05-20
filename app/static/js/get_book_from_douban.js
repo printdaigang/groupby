@@ -13,7 +13,7 @@
 
         var times = document.createElement('span');
         times.setAttribute('aria-hidden', 'true');
-        times.textContent = '×'
+        times.textContent = '×';
 
         var button = document.createElement('button');
         button.setAttribute('type', 'button');

@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
+from app.models import Book
+from flask.ext.pagedown.fields import PageDownField
 from flask.ext.wtf import Form
 from wtforms import StringField, SubmitField, IntegerField
 from wtforms import ValidationError
 from wtforms.validators import Length, DataRequired, Regexp
-from app.models import Book
-from flask.ext.pagedown.fields import PageDownField
 
 
 class EditBookForm(Form):
@@ -42,4 +42,3 @@ class SearchForm(Form):
     submit = SubmitField(u"搜索")
 
 
-from ..comment.forms import CommentForm
