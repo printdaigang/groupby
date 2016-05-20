@@ -10,7 +10,7 @@ class Comment(Resource):
     @marshal_with(comment_detail_fields)
     def get(self, comment_id):
         comment = model_Comment.query.get_or_404(comment_id)
-        if comment.deleeted:
+        if comment.deleted:
             abort(404)
         return comment
 
