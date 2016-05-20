@@ -1,8 +1,8 @@
-from flask import url_for
-from flask.ext.restful import Resource, marshal_with, fields
 from app.models import Tag as model_Tag
-from . import api, parser, default_count
-from .fields import tag_fields, tag_detail_fields
+from flask import url_for
+from flask.ext.restful import Resource, marshal_with
+from . import api, parser, default_per_page
+from .fields import tag_detail_fields, tag_list
 
 
 @api.route('/books/tags/<int:tag_id>/')
@@ -16,22 +16,25 @@ class Tag(Resource):
 
 @api.route('/books/tags/')
 class TagList(Resource):
-    @marshal_with({'tags': fields.List(fields.Nested(tag_fields)), 'next': fields.String, 'prev': fields.String,
-                   'total': fields.Integer, 'pages_count': fields.Integer, 'current_page': fields.Integer})
+    @marshal_with(tag_list)
     def get(self):
         args = parser.parse_args()
         page = args['page'] or 1
-        count = args['count'] or default_count * 2
-        pagination = model_Tag.query.paginate(page=page, per_page=count)
+        per_page = args['per_page'] or default_per_page
+        pagination = model_Tag.query.paginate(page=page, per_page=per_page)
         items = pagination.items
         prev = None
         if pagination.has_prev:
-            prev = url_for('api.taglist', page=page - 1, count=count, _external=True)
+            prev = url_for('api.taglist', page=page - 1, per_page=per_page, _external=True)
         next = None
         if pagination.has_next:
-            next = url_for('api.taglist', page=page + 1, count=count, _external=True)
-        return {'tags': items, 'prev': prev,
-                'next': next,
-                'total': pagination.total,
-                'pages_count': pagination.pages,
-                'current_page': pagination.page}
+            next = url_for('api.taglist', page=page + 1, per_page=per_page, _external=True)
+        return {
+            'items': items,
+            'prev': prev,
+            'next': next,
+            'total': pagination.total,
+            'pages_count': pagination.pages,
+            'current_page': pagination.page,
+            'per_page': per_page,
+        }

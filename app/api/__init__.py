@@ -1,6 +1,6 @@
+import types
 from flask import Blueprint
 from flask.ext.restful import Api, reqparse
-import types
 
 
 def api_route(self, *args, **kwargs):
@@ -11,9 +11,9 @@ def api_route(self, *args, **kwargs):
     return wrapper
 
 
-default_count = 5
+default_per_page = 5
 parser = reqparse.RequestParser()
-parser.add_argument('count', type=int, location='args')
+parser.add_argument('per_page', type=int, location='args')
 parser.add_argument('page', type=int, location='args')
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')

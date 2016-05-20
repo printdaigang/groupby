@@ -26,5 +26,3 @@ from app import models
 exists_db = os.path.isfile(app.config['DATABASE'])
 if not exists_db:
     import db_fill
-
-print app.url_map
