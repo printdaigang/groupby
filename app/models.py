@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+import json
+from datetime import datetime, timedelta
+
+import bleach
+from app import db, lm, avatars
 from flask import current_app, url_for
 from flask.ext.login import UserMixin, AnonymousUserMixin
-from datetime import datetime, timedelta
-import bleach
 from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db, lm, avatars
-import json
 
 
 class User(UserMixin, db.Model):

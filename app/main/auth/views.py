@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
+from app import db
+from app.models import User
 from flask import render_template, url_for, flash, redirect, request
 from flask.ext.login import login_user, logout_user, login_required, current_user
-from app.models import User
-from .forms import LoginForm, RegistrationForm, ChangePasswordForm
-from app import db
-
 from . import auth
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm
 
 
 @auth.route('/login/', methods=['GET', 'POST'])
