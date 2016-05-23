@@ -23,8 +23,8 @@
                 </div>
             {% endif %}
             <div class="col-md-6" id="input_area">
-                <small><p>请确保输入正确的URL</p>
-                    <p>上传的图片尺寸不能超过1Mb</p></small>
+                <p>请确保输入正确的URL</p>
+                <p>上传的图片尺寸不能超过1Mb</p>
                 <form method="post" class="form {% if avatar_edit_form.avatar_url.errors %} has-error{% endif -%}"
                       role="form" name="avatar_edit_form">
                     {{ avatar_edit_form.hidden_tag() }}

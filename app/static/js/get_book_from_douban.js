@@ -42,7 +42,7 @@
     }
 
     document.getElementById('get_book_from_douban').addEventListener('click', function () {
-        isbn = document.getElementById('isbn').value;
+        var isbn = document.getElementById('isbn').value;
 
         if (isNaN(isbn) || isbn.length != 13) {
             createMessage('请填写正确的13位数字ISBN', 'warning');
