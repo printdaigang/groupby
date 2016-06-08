@@ -30,7 +30,7 @@
                 <tbody>
                 {% for log in logs %}
                     <tr class="animated fadeIn delay-{{ loop.index0 }}">
-                        <td><a href="{{ url_for('user.detail' ,user_id=current_user.id) }}">{{ current_user.name }}</a>
+                        <td><a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                             <a class="visible-xs-block"
                                href="{{ url_for('book.detail',book_id=log.book.id) }}">{{ log.book.title }}</a>
                             <p class="visible-xs-block">借阅日期: <span
@@ -40,7 +40,7 @@
                                     class="line-wrap">{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</span>
                             </p>
                             {%- if current_user.is_authenticated -%}
-                                {% if current_user.id == current_user.id %}
+                                {% if current_user.id == log.user.id %}
                                     <a class="btn btn-primary visible-xs-block"
                                        href="{{ url_for('log.book_return',log_id=log.id,next=request.path) }}">
                                         归还
@@ -50,13 +50,13 @@
                                 {% endif %}
                             {%- endif -%}
                         </td>
-                        <td class="hidden-xs">{{ current_user.email }}</td>
+                        <td class="hidden-xs">{{ log.user.email }}</td>
                         <td class="hidden-xs"><a
                                 href="{{ url_for('book.detail',book_id=log.book.id) }}">{{ log.book.title }}</a></td>
                         <td class="hidden-xs">{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                         <td class="hidden-xs">{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                         {%- if current_user.is_authenticated -%}
-                            <td>{% if current_user.id == current_user.id %}
+                            <td>{% if current_user.id == log.user.id %}
                                 <a class="btn btn-primary hidden-xs"
                                    href="{{ url_for('log.book_return',log_id=log.id,next=request.path) }}">
                                     归还
@@ -84,7 +84,7 @@
                 <tbody>
                 {% for log in logs %}
                     <tr class="animated fadeIn delay-{{ loop.index0 }}">
-                        <td><a href="{{ url_for('user.detail' ,user_id=current_user.id) }}">{{ current_user.name }}</a>
+                        <td><a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                             <a class="visible-xs-block"
                                href="{{ url_for('book.detail',book_id=log.book.id) }}">{{ log.book.title }}</a>
                             <p class="visible-xs-block">借阅日期: <span
@@ -94,7 +94,7 @@
                                     class="line-wrap">{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</span>
                             </p>
                         </td>
-                        <td class="hidden-xs">{{ current_user.email }}</td>
+                        <td class="hidden-xs">{{ log.user.email }}</td>
                         <td class="hidden-xs"><a
                                 href="{{ url_for('book.detail',book_id=log.book.id) }}">{{ log.book.title }}</a></td>
                         <td class="hidden-xs">{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>

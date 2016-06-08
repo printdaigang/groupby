@@ -243,7 +243,7 @@
                                 <td>
                                     <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                 </td>
-                                <td class="hidden-xs">{{ current_user.email }}</td>
+                                <td class="hidden-xs">{{ log.user.email }}</td>
                                 </td>
                                 <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                                 <td>{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
@@ -271,7 +271,7 @@
                                 <td>
                                     <a href="{{ url_for('user.detail' ,user_id=log.user.id) }}">{{ log.user.name }}</a>
                                 </td>
-                                <td class="hidden-xs">{{ current_user.email }}</td>
+                                <td class="hidden-xs">{{ log.user.email }}</td>
                                 </td>
                                 <td>{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                                 <td>{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
