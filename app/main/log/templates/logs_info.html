@@ -46,7 +46,7 @@
                                         归还
                                     </a>
                                 {% else %}
-                                    <button class="btn btn-warning visible-xs-block" disabled>待归还</button>
+                                    <button class="btn btn-warning visible-xs-block btn-block" disabled>待归还</button>
                                 {% endif %}
                             {%- endif -%}
                         </td>
@@ -56,14 +56,17 @@
                         <td class="hidden-xs">{{ log.borrow_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                         <td class="hidden-xs">{{ log.return_timestamp.strftime('%d %B %Y - %H:%M:%S') }}</td>
                         {%- if current_user.is_authenticated -%}
-                            <td>{% if current_user.id == log.user.id %}
-                                <a class="btn btn-primary hidden-xs"
+                            <td class="hidden-xs">
+                            {% if current_user.id == log.user.id %}
+                                <a class="btn btn-primary btn-block"
                                    href="{{ url_for('log.book_return',log_id=log.id,next=request.path) }}">
                                     归还
-                                </a>{% else %}
-                                <button class="btn btn-warning hidden-xs" disabled>待归还</button>{% endif %}</td>
+                                </a>
+                            {% else %}
+                                <button class="btn btn-warning btn-block" disabled>待归还</button>
+                            {% endif %}
                         {%- endif -%}
-
+                        </td>
                     </tr>
 
 
