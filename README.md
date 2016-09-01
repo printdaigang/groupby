@@ -9,23 +9,23 @@ Simple Book library application written on flask with SQLite database.
 
 ## Screen Shot
 Index page:
-![index page](http://r5.loli.io/uYZzia.png)
+![index page](https://cloud.githubusercontent.com/assets/7829098/18173715/3e9ccc62-709d-11e6-820d-1cad1e6822b7.png)
 
 User detail page:
-![user detail page](http://r5.loli.io/NJFFne.png)
+![user detail page](https://cloud.githubusercontent.com/assets/7829098/18173713/3e324018-709d-11e6-9a64-b8c7e87b1f2d.png)
 
 Book list page:
-![book list page](http://r5.loli.io/2m6Jfu.png)
+![book list page](https://cloud.githubusercontent.com/assets/7829098/18173712/3defdba6-709d-11e6-99f4-aa0471c75af0.png)
 
 Book detail page:
-![book detail page](http://r5.loli.io/mMBnqy.png)
+![book detail page](https://cloud.githubusercontent.com/assets/7829098/18173711/3dbdfe92-709d-11e6-8a63-85c64717ac70.png)
 
 ## Installation
 ```sh
 git clone https://github.com/hufan-Akari/BookLibrary.git
 cd BookLibrary
 virtualenv ./venv
-source ./venv/bin/active
+source ./venv/bin/activate
 pip install -r requirements.txt
 python ./run.py
 ```
